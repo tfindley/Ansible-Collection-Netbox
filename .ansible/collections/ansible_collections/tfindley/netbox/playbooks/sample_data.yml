@@ -1,0 +1,39 @@
+- name: Apply configuration to Netbox
+  hosts: localhost
+  connection: local
+  become: false
+  gather_facts: false
+
+  roles:
+    - tfindley.netbox.config
+
+  vars:
+    netbox_api: "{{ lookup('env', 'NETBOX_API') }}"
+    netbox_api_key: "{{ lookup('env', 'NETBOX_API_KEY') }}"
+    netbox_validcert: false
+    netbox_config: sample_data/vars
+    netbox_version: 4
+    netbox_tags_base:
+      - ansible_managed
+
+
+  pre_tasks:
+    - name: Validate configuration directory
+      become: false
+      ignore_errors: true
+      register: netbox_config_directory
+      ansible.builtin.stat:
+        path: "{{ netbox_config }}"
+
+    - name: Ensure variables are set
+      become: false
+      ansible.builtin.assert:
+        that:
+          - netbox_config is defined and netbox_config | length >= 1
+          - netbox_config_directory.stat.exists
+
+    - name: Load vars from "{{ netbox_config }}"
+      become: false
+      register: var_results
+      ansible.builtin.include_vars:
+        dir: "{{ netbox_config }}"

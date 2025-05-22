@@ -1,0 +1,43 @@
+---
+config_extras_config_contexts:
+  - name: "OS: Linux - CentOS 9"
+    description: "Configuration data CentOS Linux 9"
+    data: "{{ lookup('ansible.builtin.file', 'config_contexts/os/linux/centos_9.json') }}"
+    is_active: true
+    tags:
+      - os_linux_centos_9
+
+  - name: "OS: Linux - Rocky 8"
+    description: "Configuration data Rocky Linux 8"
+    data: "{{ lookup('ansible.builtin.file', 'config_contexts/os/linux/rocky_8.json') }}"
+    is_active: true
+    tags:
+      - os_linux_rocky_8
+
+  - name: "OS: Linux - Rocky 9"
+    description: "Configuration data Rocky Linux 9"
+    data: "{{ lookup('ansible.builtin.file', 'config_contexts/os/linux/rocky_9.json') }}"
+    is_active: true
+    tags:
+      - os_linux_rocky_9
+
+  - name: "OS: Linux - Ubuntu 20.04"
+    description: "Configuration data Ubuntu 20.04 LTS"
+    data: "{{ lookup('ansible.builtin.file', 'config_contexts/os/linux/ubuntu_20_04.json') }}"
+    is_active: true
+    tags:
+      - os_linux_ubuntu_20_04
+
+  - name: "OS: Linux - Ubuntu 22.04"
+    description: "Configuration data Ubuntu 22.04 LTS"
+    data: "{{ lookup('ansible.builtin.file', 'config_contexts/os/linux/ubuntu_22_04.json') }}"
+    is_active: true
+    tags:
+      - os_linux_ubuntu_22_04
+
+  - name: "OS: Linux - Ubuntu 24.04"
+    description: "Configuration data Ubuntu 24.04 LTS"
+    data: "{{ lookup('ansible.builtin.file', 'config_contexts/os/linux/ubuntu_24_04.json') }}"
+    is_active: true
+    tags:
+      - os_linux_ubuntu_24_04

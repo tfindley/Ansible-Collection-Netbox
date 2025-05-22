@@ -1,0 +1,35 @@
+---
+galaxy_info:
+  author: Tristan Findley
+  role_name: hostsync
+  namespace: tfindley
+  description: This role will sync your CI (Configuration Instance - a device or VM) informatino and update that hosts record in Netbox.
+  license: Apache-2.0
+  company: none
+  min_ansible_version: "2.12"
+
+  platforms:
+    - name: Amazon
+      versions:
+        - Candidate
+    - name: Debian
+      versions:
+        - all
+    - name: EL
+      versions:
+        - "7"
+        - "8"
+        - "9"
+    - name: Fedora
+      versions:
+        - "36"
+        - "37"
+    - name: Ubuntu
+      versions:
+        - all
+
+  galaxy_tags:
+    - vault
+    - hashicorp
+
+dependencies: []

@@ -1,0 +1,6 @@
+ansible
+ansible-compat
+ansible-core
+ansible-lint
+netaddr
+pynetbox

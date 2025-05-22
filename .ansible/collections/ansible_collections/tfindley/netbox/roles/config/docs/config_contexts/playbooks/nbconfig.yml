@@ -1,0 +1,13 @@
+- name: Apply changes & configuration to Netbox
+  hosts: localhost
+  connection: local
+  become: false
+  gather_facts: false
+
+  roles:
+    - nbconfig
+
+  vars:
+    config_netbox_api: "{{ lookup('env', 'NETBOX_API') }}"
+    config_netbox_api_key: "{{ lookup('env', 'NETBOX_API_KEY') }}"
+    config_netbox_validcert: false

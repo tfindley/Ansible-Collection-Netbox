@@ -1,0 +1,14 @@
+---
+# config_tenancy_contact_groups:
+#   - name: ""  # Required
+#     slug: "" # Required
+#     # parent_contact_group:  # Optional
+#     # tags:  # Optional
+#     # custom_fields:  # Optional - must be pre-defined
+
+# config_tenancy_contacts:
+#   - name: ''
+#     title: ''
+#     email: ""
+#     custom_fields:
+#       customer_id: "DMI01"

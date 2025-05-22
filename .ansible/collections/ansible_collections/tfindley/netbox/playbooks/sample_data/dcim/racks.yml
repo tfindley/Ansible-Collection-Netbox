@@ -1,0 +1,10 @@
+---
+config_dcim_racks:
+  - name: "Comms closet"
+    status: "Active"
+    site: "dm-albany"
+    form_factor: "Wall-mounted cabinet"
+    u_height: 12
+    width: 19
+    role: "comms"
+    tenant: "dunder-mifflin"

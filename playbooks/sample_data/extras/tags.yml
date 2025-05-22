@@ -1,0 +1,46 @@
+---
+config_extras_tags:
+  - name: 'Terraformed'
+    slug: terraformed
+    color: 673ab7
+    description: "Created using Hashicorp Terraform"
+
+  - name: 'Ansible Managed'
+    slug: ansible_managed
+    color: FF2D00
+    description: "Created and Managed using Ansible"
+
+  - name: 'Ansible Inventoried'
+    slug: ansible_inventoried
+    color: AA1409
+    description: "Device/VM/Interface has been inventoried using Ansible"
+
+  - name: 'OS: Linux - CentOS 9'
+    slug: 'os_linux_centos_9'
+    color: 03A9F0
+    description: "Operating System: Linux - CentOS 9"
+
+  - name: 'OS: Linux - Rocky 8'
+    slug: 'os_linux_rocky_8'
+    color: 03A9F0
+    description: "Operating System: Linux - Rocky 8"
+
+  - name: 'OS: Linux - Rocky 9'
+    slug: 'os_linux_rocky_9'
+    color: 03A9F0
+    description: "Operating System: Linux - Rocky 9"
+
+  - name: 'OS: Linux - Ubuntu 20.04'
+    slug: 'os_linux_ubuntu_20_04'
+    color: 03A9F0
+    description: "Operating System: Linux - Ubuntu 20.04 LTS"
+
+  - name: 'OS: Linux - Ubuntu 22.04'
+    slug: 'os_linux_ubuntu_22_04'
+    color: 03A9F0
+    description: "Operating System: Linux - Ubuntu 22.04 LTS"
+
+  - name: 'OS: Linux - Ubuntu 24.04'
+    slug: 'os_linux_ubuntu_24_04'
+    color: 03A9F0
+    description: "Operating System: Linux - Ubuntu 24.04 LTS"

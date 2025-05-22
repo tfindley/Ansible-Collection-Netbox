@@ -1,0 +1,29 @@
+---
+
+- name: "Fetch existing CI (VM) information from NetBox"
+  delegate_to: localhost
+  connection: local
+  become: false
+  check_mode: true
+  register: netbox_ci_info
+  netbox.netbox.netbox_virtual_machine:
+    netbox_url: "{{ netbox_api }}"
+    netbox_token: "{{ netbox_api_key }}"
+    validate_certs: "{{ netbox_validcert }}"
+    data:
+      name: "{{ hostsync_hostname }}"
+
+- name: "Write new CI (VM) information to existing record in NetBox"
+  ansible.builtin.include_tasks: virtual/vm_write.yml
+
+- name: "Enumerate adapter {{ item }}"
+  ansible.builtin.include_tasks: virtual/adapter.yml
+  loop: "{{ interfaces }}"
+  when:
+    - hostvars[hostsync_hostname]['ansible_%s' | format(item)]['type'] != 'bonding'
+
+- name: "Enumerate bond {{ item }}"
+  ansible.builtin.include_tasks: virtual/adapter.yml
+  loop: "{{ interfaces }}"
+  when:
+    - hostvars[hostsync_hostname]['ansible_%s' | format(item)]['type'] == 'bonding'

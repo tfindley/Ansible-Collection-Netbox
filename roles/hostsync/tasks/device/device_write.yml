@@ -1,0 +1,177 @@
+---
+
+# ------
+# Get serial number
+- name: Compute serial number
+  when:
+    - hostsync_device_serialnumber | default(true) | bool
+  block:
+
+    - name: Get serial number  # noqa: no-changed-when command-instead-of-shell
+      become: true
+      register: hostsync_serial_output
+      failed_when: hostsync_serial_output.rc != 0
+      changed_when: false
+      ansible.builtin.shell:
+        cmd: "{{ hostsync_mb_lookup.serialno }}"
+
+    - name: Set serial number (Sample data)
+      become: false
+      when:
+        - ansible_check_mode | bool
+      ansible.builtin.set_fact:
+        hostsync_serial_output:
+          stdout: '1ABCD23'
+
+# ------
+
+- name: Compute serial number
+  when:
+    - hostsync_device_devicetype | default(true) | bool
+  block:
+
+    - name: Get Product name  # noqa: no-changed-when command-instead-of-shell
+      become: true
+      register: hostsync_model_output
+      failed_when: hostsync_model_output.rc != 0
+      changed_when: false
+      ansible.builtin.shell:
+        cmd: "{{ hostsync_mb_lookup.model }}"
+
+    - name: Set Product Name (Sample data)
+      become: false
+      when:
+        - ansible_check_mode | bool
+      ansible.builtin.set_fact:
+        hostsync_model_output:
+          stdout: 'PowerEdge R760xa'
+
+    - name: Debug manufacturer variable
+      ansible.builtin.debug:
+        msg: |
+          "device_manufacturer: {{ hostsync_mb_lookup.manufacturer | default('unset') }}"
+
+    - name: Debug model varialbe
+      ansible.builtin.debug:
+        msg: |
+          "device_model: {{ hostsync_model_output.stdout | default('unset') | lower | replace(' ', '_') }}"
+
+    - name: Debug device_type variable
+      ansible.builtin.debug:
+        msg: |
+          "device_type: {{ hostsync_mb_lookup.manufacturer | default('unset') }}_{{ hostsync_model_output.stdout | default('unset') | lower | replace(' ', '_') }}"
+
+
+# ------
+
+# - name: Calculate device netmask
+#   ansible.builtin.set_fact:
+#     _hostsync_device_cidr: "{{ ansible_default_ipv4.network }}/{{ ansible_default_ipv4.netmask }}"
+
+# ------
+# Enumerate GPU
+# Note: This does not work with Ansible Check mode
+# Note: This has been disabled for now due to issues with count
+
+# - name: Enumerate nvidia GPUs
+#   when:
+#     - hostsync_device_nvidiagpu | default(true) | bool
+#   block:
+
+#     - name: "Ensure nvidia-smi is installed"
+#       register: nvidia_smi_check
+#       become: false
+#       changed_when: false
+#       failed_when: false
+#       ansible.builtin.command:
+#         cmd: which nvidia-smi
+
+#     - name: "Get GPU model and index with nvidia-smi"
+#       when:
+#         - nvidia_smi_check.rc == 0
+#       ansible.builtin.command:
+#         cmd: nvidia-smi --query-gpu=name,index --format=csv,noheader
+#       register: nvidia_smi_output
+#       changed_when: false
+#       failed_when: false
+
+#     - name: "Parse GPU model and index"
+#       become: false
+#       when:
+#         - nvidia_smi_output is defined
+#         - nvidia_smi_output.rc == 0
+#       ansible.builtin.set_fact:
+#         nvgpu_devices_raw: >-
+#           {{
+#             nvidia_smi_output.stdout_lines
+#             | map('regex_replace', '^(.*), ([0-9]+)$', '{"name": "\1", "index": \2}')
+#             | map('from_json')
+#             | list
+#           }}
+
+#     - name: "Map GPU models to type index"
+#       become: false
+#       when:
+#         - nvgpu_devices_raw is defined
+#       ansible.builtin.set_fact:
+#         nvgpu_devices: >-
+#           {{
+#             nvgpu_devices_raw | map('combine', {'type': hostsync_gpu_model_to_type[item.name] | default('unknown')}) | list
+#           }}
+#       loop: "{{ nvgpu_devices_raw }}"
+#       loop_control:
+#         loop_var: item
+
+#     - name: "Set GPU Count and Type"
+#       ansible.builtin.set_fact:
+#         nvgpu_count: "{{ nvgpu_devices | count | int  }}"
+#         nvgpu_type: "{{ nvgpu_devices[0]['type'] | default(omit) }}"
+
+#     - name: Debug count and type
+#       ansible.builtin.debug:
+#         msg:
+#           - "Count: {{ nvgpu_count }} {{ nvgpu_count | type_debug}}"
+#           - "Type: {{ nvgpu_type }} {{ nvgpu_type | type_debug }}"
+
+# ------
+# Write back all information to Netbox
+
+- name: Debug data
+  delegate_to: localhost
+  connection: local
+  become: false
+  when:
+    - ansible_check_mode | bool
+  ansible.builtin.debug:
+    msg:
+      - Data to be written
+      - "------------------"
+      - "name: {{ hostsync_hostname }}"
+      - "custom_fields: {{ hostsync_device_custom_fields_mapping }}"
+      - "device_type: {{ hostsync_mb_lookup.manufacturer }}_{{ hostsync_model_output.stdout | default('unset') | lower | replace(' ', '_') }}"
+      - "serial: {{ hostsync_serial_output.stdout | default(omit) }}"
+      - "tags: {{ (netbox_ci_info.device.tags | default([])) + ((hostsync_add_tags) | default([])) }}"
+      - ''
+      - "Original Data"
+      - "------------------"
+      - "{{ netbox_ci_info.device }}"
+
+- name: Write CI information
+  delegate_to: localhost
+  connection: local
+  become: false
+  when:
+    - not ansible_check_mode | bool
+  netbox.netbox.netbox_device:
+    netbox_url: "{{ netbox_api }}"
+    netbox_token: "{{ netbox_api_key }}"
+    validate_certs: "{{ netbox_validcert }}"
+    data:
+      name: "{{ hostsync_hostname }}"
+      # device_type: "{{ hostsync_model_output.stdout | lower | replace(' ', '-') }}"
+      custom_fields: "{{ hostsync_device_custom_fields_mapping }}"
+      device_type: "{{ hostsync_mb_lookup.manufacturer }}_{{ hostsync_model_output.stdout | lower | replace(' ', '_') }}"
+      # primary_ip4: "{{ hostsync_primary_ipv4 }}"  # No sense writing this as we required it to access the host in Netbox
+      serial: "{{ hostsync_serial_output.stdout | default(omit) }}"
+      tags: "{{ (netbox_ci_info.device.tags | default([])) + ((hostsync_add_tags) | default([])) }}"
+    state: present

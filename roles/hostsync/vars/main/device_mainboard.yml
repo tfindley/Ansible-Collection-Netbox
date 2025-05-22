@@ -1,0 +1,20 @@
+---
+hostsync_model_output: 'unset'
+hostsync_serial_output: 'unset'
+
+_hostsync_mb_logic:
+  "dell inc.":
+    serialno: "dmidecode -t system | grep Serial | cut -d ':' -f 2 | cut -d ' ' -f 2"
+    model: "dmidecode -t system | grep 'Product Name' | cut -d ':' -f 2 | cut -d ' ' -f 2-"
+    manufacturer: dell
+  "hp":  # This needs checking
+    serialno: "dmidecode -t system | grep Serial | cut -d ':' -f 2 | cut -d ' ' -f 2"
+    make: hpe
+  "raspberry pi foundation":  # This needs checking
+    serialno: "cat /proc/cpuinfo  | grep Serial | cut -d ':' -f2 | cut -d ' ' -f 2"
+  # Add more manufacturer mappings as needed
+  "default":
+    serialno: "dmidecode -t system | grep Serial | cut -d ':' -f 2 | cut -d ' ' -f 2"
+    model: "dmidecode -t system | grep 'Product Name' | cut -d ':' -f 2 | cut -d ' ' -f 2-"
+    make: "{{ ansible_board_vendor | lower }}"
+hostsync_mb_lookup: "{{ _hostsync_mb_logic[ansible_board_vendor | lower] | default(_hostsync_mb_logic['default']) }}"

@@ -1,0 +1,27 @@
+---
+# tasks file for hostsync
+
+- name: Run PreFlight checks
+  ansible.builtin.include_tasks: preflight.yml
+
+- name: Gather all network interfaces
+  ansible.builtin.set_fact:
+    interfaces: "{{ ansible_interfaces | difference(hostsync_interface_exclude) | list | sort }}"
+
+- name: Initialize network adapters dictionary
+  ansible.builtin.set_fact:
+    network_adapters: {}
+
+- name: Trigger Physical Device hostsync
+  when:
+    - ansible_virtualization_role == "host"
+  ansible.builtin.include_tasks: device/main.yml
+
+- name: Trigger Virtual Machine hostsync
+  when:
+    - ansible_virtualization_role == "guest"
+  ansible.builtin.include_tasks: virtual/main.yml
+
+# - name: Display network adapter dictionary
+#   ansible.builtin.debug:
+#     var: network_adapters

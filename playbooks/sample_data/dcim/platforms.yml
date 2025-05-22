@@ -1,0 +1,21 @@
+---
+config_dcim_platforms:
+  - name: "Rocky Linux 8"
+    slug: "linux_rocky_8"
+    manufacturer: "rocky_linux"
+
+  - name: "Rocky Linux 9"
+    slug: "linux_rocky_9"
+    manufacturer: "rocky_linux"
+
+  - name: "Ubuntu 20.04 LTS"
+    slug: "linux_ubuntu_20_04"
+    manufacturer: "canonical"
+
+  - name: "Ubuntu 22.04 LTS"
+    slug: "linux_ubuntu_22_04"
+    manufacturer: "canonical"
+
+  - name: "Ubuntu 24.04 LTS"
+    slug: "linux_ubuntu_24_04"
+    manufacturer: "canonical"

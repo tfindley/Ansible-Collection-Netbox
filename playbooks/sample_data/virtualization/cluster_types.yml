@@ -1,0 +1,32 @@
+---
+
+config_virtualization_cluster_types:
+  - name: "VXRail"
+    slug: "vxrail"
+    description: "Dell VXRail Hyper Converged cluster running VMWare hypervisor, vsphere and managed storage"
+    tags:
+      - ansible_managed
+
+  - name: "Proxmox"
+    slug: "proxmox"
+    description: "Proxmox Hypervisor. Lower cost alternative to VMWare"
+    tags:
+      - ansible_managed
+
+  - name: "vSphere"
+    slug: "vsphere"
+    description: "vSphere Managed group of ESXi devices"
+    tags:
+      - ansible_managed
+
+  - name: "ESXi"
+    slug: "esxi"
+    description: "Stand alone ESXI hosts not managed under a single vCenter instance. Typically these are used for small standalone virtual deployments for development purposes."  # noqa: yaml[line-length]
+    tags:
+      - ansible_managed
+
+  - name: "OpenStack"
+    slug: "openstack"
+    description: "Open source cloud infrastructure software for virtual machines and containers."  # noqa: yaml[line-length]
+    tags:
+      - ansible_managed

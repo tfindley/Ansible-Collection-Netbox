@@ -1,0 +1,9 @@
+---
+config_dcim_roles:
+  - name: "Virtual Machine"
+    slug: "vm"
+    color: 'ffc107'
+
+  - name: "Containerisation"
+    slug: "containerisation"
+    color: '03a9f4'

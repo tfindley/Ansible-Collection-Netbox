@@ -1,0 +1,8 @@
+---
+config_tenancy_tenants:
+  - name: 'Dunder-Mifflin, Inc.'
+    slug: dunder-mifflin
+    tenant_group: customers
+    description: "Sample Tenant"
+    custom_fields:
+      customer_id: "DMI01"

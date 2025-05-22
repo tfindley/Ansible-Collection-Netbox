@@ -1,0 +1,24 @@
+---
+_hostsync_os_logic:
+  linux: "{{ ansible_system | lower }}_{{ ansible_distribution | lower }}{% if ansible_distribution_major_version is defined %}_{{ ansible_distribution_major_version }}{% if ansible_distribution_minor_version is defined %}_{{ ansible_distribution_minor_version }}{% endif %}{% endif %}"  # noqa: yaml[line-length]
+  windows: "{{ ansible_system | lower }}"
+  default: "{{ ansible_system | lower }}_{{ ansible_distribution | lower }}"
+
+# _hostsync_os_logic:
+#   linux:
+#     ubuntu: "{{ ansible_system | lower }}_{{ ansible_distribution | lower }}_{{ ansible_distribution_major_version }}_{{ ansible_distribution_minor_version }}"
+#     rocky: "{{ ansible_system | lower }}_{{ ansible_distribution | lower }}_{{ ansible_distribution_major_version }}"
+#     centos: "{{ ansible_system | lower }}_{{ ansible_distribution | lower }}_{{ ansible_distribution_major_version }}"
+#     debian: "{{ ansible_system | lower }}_{{ ansible_distribution | lower }}_{{ ansible_distribution_major_version }}_{{ ansible_distribution_minor_version }}"
+#   windows:
+#     server: "{{ ansible_system | lower }}_{{ ansible_distribution | lower }}_server_{{ ansible_distribution_major_version }}"
+#     desktop: "{{ ansible_system | lower }}_{{ ansible_distribution | lower }}_{{ ansible_distribution_major_version }}"
+#   default: "{{ ansible_system | lower }}_{{ ansible_distribution | lower }}"
+# hostsync_platform_lookup: "{{ _hostsync_os_logic[ansible_system | lower][ansible_distribution | lower] | default(hostsync_platform_lookup[default]) }}"
+
+# ------
+
+# _hostsync_platform_lookup_linux: "{{ ansible_system }}_{{ ansible_distribution | lower }}{{ if ansible_distribution_major_version '_' + ansible_distribution_major_version }}{{ if ansible_distribution_minor_version '_' + ansible_distribution_minor_version }}"
+# _hostsync_platform_lookup_windows:
+
+# hostsync_platform_lookup: "{{ if 'linux' in ansible_system | lower _hostsync_platform_lookup_linux else if 'windows' in ansible_system | lower _hostsync_platform_lookup_windows }}"

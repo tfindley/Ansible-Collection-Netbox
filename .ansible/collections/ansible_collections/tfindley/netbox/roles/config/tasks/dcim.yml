@@ -1,0 +1,162 @@
+---
+
+# ------
+# Rack Management: https://docs.ansible.com/ansible/latest/collections/netbox/netbox/netbox_rack_module.html
+- name: "NBConfig.DCIM - Manage dcim:rack_roles"
+  become: false
+  loop: "{{ config_dcim_rack_roles }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when:
+    - config_dcim_rack_roles is defined
+  netbox.netbox.netbox_rack_role:
+    netbox_url: "{{ config_netbox_api }}"
+    netbox_token: "{{ config_netbox_api_key }}"
+    validate_certs: "{{ config_netbox_validcert }}"
+    data:
+      name: "{{ item.name }}"  # Required
+      slug: "{{ item.slug }}"  # Required
+      color: "{{ item.color | default('00ff00') }}"  # Required
+      description: "{{ item.description | default(omit) }}"  # Optional
+      tags: "{{ (item.tags | default([])) + (config_tags_base | default([])) }}"  # Optional
+      custom_fields: "{{ item.custom_fields | default(omit) }}"  # Optional - must be pre-defined
+    state: "{{ item.state | default('present') }}"  # Optional
+
+# ------
+# Racks: https://docs.ansible.com/ansible/latest/collections/netbox/netbox/netbox_rack_module.html#ansible-collections-netbox-netbox-netbox-rack-module
+- name: "NBConfig.DCIM - Manage dcim:racks"
+  become: false
+  loop: "{{ config_dcim_racks }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when:
+    - config_dcim_racks is defined
+  netbox.netbox.netbox_rack:
+    netbox_url: "{{ config_netbox_api }}"
+    netbox_token: "{{ config_netbox_api_key }}"
+    validate_certs: "{{ config_netbox_validcert }}"
+    data:
+      site: "{{ item.site }}"  # Required
+      location: "{{ item.location | default(omit) }}"  # Optional
+      name: "{{ item.name }}"  # Required
+      status: "{{ item.status | default('active') | lower }}"  # Required - planned | staging | active | decomissioning | retired
+      rack_role: "{{ item.role | default(omit) }}"  # Optional
+      # rack_type: # not yet implemented
+      description: "{{ item.description | default(omit) }}"  # Optional
+      # airflow:  # not yet implemented
+      facility_id: "{{ item.facility_id | default(omit) }}"   # Optional
+      serial: "{{ item.serial | default(omit) }}"   # Optional
+      asset_tag: "{{ item.asset_tag | default(omit) }}"   # Optional
+      tenant: "{{ item.tenant | default(omit) }}"   # Optional
+      type: "{{ item.form_factor }}"  # Optional - 2-post frame | 4-post frame | 4-post cabinet | Wall-mounted frame | Wall-mounted cabinet
+      width: "{{ item.width | default(19) }}" # Required
+      u_height: "{{ item.u_height }}"  # Required
+      outer_width: "{{ item.outer_width | default(omit) }}"  # Optional
+      outer_depth: "{{ item.outer_depth | default(omit) }}"  # Optional
+      outer_unit: "{{ item.outer_unit | default(omit) }}" # Optional - Millimeters | Inches
+      weight: "{{ item.weight | default(omit) }}"  # Optional
+      max_weight: "{{ item.max_weight | default(omit) }}"  # Optional
+      weight_unit: "{{ item.weight_unit | default(omit) }}" # Optional - kg | g | lb | oz
+      mounting_depth: "{{ item.mounting_depth | default(omit) }}"  # Optional
+      desc_units: "{{ item.desc_units | default(false) | bool }}"  # Required
+      comments: "{{ item.comments | default(omit) }}"  # Optional
+      tags: "{{ (item.tags | default([])) + (config_tags_base | default([])) }}"
+      custom_fields: "{{ item.custom_fields | default(omit) }}"  # Optional - must be pre-defined
+    state: "{{ item.state | default('present') }}"  # Optional
+
+# ------
+# Device Manufacturers
+- name: "NBConfig.DCIM - Manage dcim:manufacturers"
+  become: false
+  loop: "{{ config_dcim_manufacturers }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when:
+    - config_dcim_manufacturers is defined
+  netbox.netbox.netbox_manufacturer:
+    netbox_url: "{{ config_netbox_api }}"
+    netbox_token: "{{ config_netbox_api_key }}"
+    validate_certs: "{{ config_netbox_validcert }}"
+    data:
+      name: "{{ item.name }}"  # Required
+      slug: "{{ item.slug }}"  # Required
+      description: "{{ item.description | default(omit) }}"  # Optional
+      tags: "{{ (item.tags | default([])) + (config_tags_base | default([])) }}"
+      custom_fields: "{{ item.custom_fields | default(omit) }}"  # Optional - must be pre-defined
+    state: "{{ item.state | default('present') }}"  # Optional
+
+# ------
+# Device roles: https://docs.ansible.com/ansible/latest/collections/netbox/netbox/netbox_device_role_module.html
+- name: "NBConfig.DCIM - Manage dcim:platforms"
+  become: false
+  loop: "{{ config_dcim_platforms }}"
+  loop_control:
+    label: "{{ item.slug }}"
+  when:
+    - config_dcim_platforms is defined
+  netbox.netbox.netbox_platform:
+    netbox_url: "{{ config_netbox_api }}"
+    netbox_token: "{{ config_netbox_api_key }}"
+    validate_certs: "{{ config_netbox_validcert }}"
+    data:
+      name: "{{ item.name }}"  # Required
+      slug: "{{ item.slug }}"  # Required
+      manufacturer: "{{ item.manufacturer | default(omit) }}"  # Optional
+      description: "{{ item.description | default(omit) }}"  # Optional
+      tags: "{{ (item.tags | default([])) + (config_tags_base | default([])) }}"
+      custom_fields: "{{ item.custom_fields | default(omit) }}"  # Optional - must be pre-defined
+    state: "{{ item.state | default('present') }}"  # Optional
+
+# ------
+# Device Management: https://docs.ansible.com/ansible/latest/collections/netbox/netbox/netbox_device_type_module.html
+- name: "NBConfig.DCIM - Manage dcim:device_type"
+  become: false
+  loop: "{{ config_dcim_device_type }}"
+  loop_control:
+    label: "{{ item.slug }}"
+  when:
+    - config_dcim_device_type is defined
+  netbox.netbox.netbox_device_type:
+    netbox_url: "{{ config_netbox_api }}"
+    netbox_token: "{{ config_netbox_api_key }}"
+    validate_certs: "{{ config_netbox_validcert }}"
+    data:
+      manufacturer: "{{ item.manufacturer }}"  # Required
+      model: '{{ item.model }}'  # Required
+      slug: '{{ item.slug }}'  # Required
+      default_platform: "{{ item.default_platform | default(omit) }}"  # Optional
+      description: "{{ item.description | default(omit) }}"  # Optional
+      u_height: "{{ item.u_height | default(0.0) }}"  # Required
+      is_full_depth: "{{ item.is_full_depth | default(false) | bool }}"
+      part_number: "{{ item.part_number | default(omit) }}"  # Optional
+      subdevice_role: "{{ item.subdevice_role | default(omit) }}"  # Optional - parent | child
+      airflow: "{{ item.airflow | default(omit) }}"  # Optional - front-to-rear | rear-to-front | left-to-right | right-to-left | side-to-rear | passive | mixed
+      weight: "{{ item.weight | default(omit) }}"  # Optional
+      weight_unit: "{{ item.weight_unit | default(omit) }}" # Optional - kg | g | lb | oz
+      comments: "{{ item.comments | default(omit) }}"  # Optional
+      tags: "{{ (item.tags | default([])) + (config_tags_base | default([])) }}"
+      custom_fields: "{{ item.custom_fields | default(omit) }}"  # Optional - must be pre-defined
+    state: "{{ item.state | default('present') }}"  # Optional
+
+# ------
+# Device roles: https://docs.ansible.com/ansible/latest/collections/netbox/netbox/netbox_device_role_module.html
+- name: "NBConfig.DCIM - Manage dcim:device_roles"
+  become: false
+  loop: "{{ config_dcim_roles }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when:
+    - config_dcim_roles is defined
+  netbox.netbox.netbox_device_role:
+    netbox_url: "{{ config_netbox_api }}"
+    netbox_token: "{{ config_netbox_api_key }}"
+    validate_certs: "{{ config_netbox_validcert }}"
+    data:
+      name: "{{ item.name }}"  # Required
+      slug: "{{ item.slug }}"  # Required
+      color: "{{ item.color | default('00ff00') }}"  # Required
+      description: "{{ item.description | default(omit) }}"  # Optional
+      vm_role: "{{ item.vm_role | default(true) | bool }}"  # Optional
+      tags: "{{ (item.tags | default([])) + (config_tags_base | default([])) }}"  # Optional
+      custom_fields: "{{ item.custom_fields | default(omit) }}"  # Optional - must be pre-defined
+    state: "{{ item.state | default('present') }}"  # Optional

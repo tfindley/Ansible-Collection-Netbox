@@ -1,0 +1,14 @@
+---
+config_extras_custom_field_choices:
+  - name: "Operating System"
+    # description:
+    # order_alphabetically:
+    # base_choice:
+    extra_choices:
+      - ['linux_rocky_9', 'Rocky Linux 9']
+      - ['linux_rocky_8', 'Rocky Linux 8']
+      - ['linux_ubuntu_20_04', 'Ubuntu Linux 20.04 (LTS)']
+      - ['linux_ubuntu_22_04', 'Ubuntu Linux 22.04 (LTS)']
+      - ['linux_ubuntu_24_04', 'Ubuntu Linux 24.04 (LTS)']
+      - ['windows_server_2019', 'Microsoft Windows Server 2019']
+      - ['unknown', 'Unknown Operating System']

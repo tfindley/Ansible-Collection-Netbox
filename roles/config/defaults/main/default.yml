@@ -1,0 +1,13 @@
+---
+# defaults file for nbconfig
+
+config_netbox_api: "{{ netbox_api | default(lookup('env', 'NETBOX_API')) }}"
+config_netbox_api_key: "{{ netbox_api_key | default(lookup('env', 'NETBOX_API_KEY')) }}"
+config_netbox_validcert: "{{ netbox_api_key | bool | default(true) }}"
+
+# This is the tag that is added to all items configured by this role.
+# We do this so users of Netbox know not to alter items with this tag.
+# If you do not want to use this feature, simply comment out the lines below.
+config_tags_base: "{{ netbox_tags_base | default(['ansible_managed']) | list }}"
+
+config_netbox_version: "{{ netbox_version | default(4) }}"

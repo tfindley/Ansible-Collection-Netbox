@@ -1,0 +1,4 @@
+---
+config_dcim_manufacturers:
+  - name: 'Dunder-Mifflin, Inc.'
+    slug: 'dunder-mifflin'

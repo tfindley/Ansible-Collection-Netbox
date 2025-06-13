@@ -1,6 +1,8 @@
 ---
 # defaults file for hostsync
 
+hostsync_hostname: "{{ inventory_hostname }}"
+
 # ------
 hostsync_device_serialnumber: true
 hostsync_device_devicetype: true

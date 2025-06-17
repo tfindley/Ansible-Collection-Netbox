@@ -4,6 +4,9 @@ Tfindley.Netbox Release Notes
 
 .. contents:: Topics
 
+v0.5.2
+======
+
 v0.5.1
 ======
 

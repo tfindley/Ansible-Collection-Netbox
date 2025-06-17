@@ -73,9 +73,9 @@
   connection: local
   become: false
   netbox.netbox.netbox_device_interface:
-    netbox_url: "{{ netbox_api }}"
-    netbox_token: "{{ netbox_api_key }}"
-    validate_certs: "{{ netbox_validcert }}"
+    netbox_url: "{{ hostsync_netbox_api }}"
+    netbox_token: "{{ hostsync_netbox_api_key }}"
+    validate_certs: "{{ hostsync_netbox_validcert }}"
     data:
       device: "{{ hostsync_hostname }}"
       name: "{{ network_adapters[interface_name]['name'] }}"

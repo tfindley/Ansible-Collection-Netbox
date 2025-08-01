@@ -1,0 +1,19 @@
+---
+
+config_ipam_vlan_group:
+  - name: Offices
+    slug: offices
+    vid_ranges: [
+      [1, 4094]
+    ]
+    scope_type: "dcim.site"
+    scope: "dm-albany"
+
+config_ipam_vlan:
+  - vid: 1
+    name: "Default"
+    status: "active"
+    role: "Infrastructure"
+    description: "Default UniFi VLAN"
+    tenant: "dunder-mifflin"
+    site: dm-albany

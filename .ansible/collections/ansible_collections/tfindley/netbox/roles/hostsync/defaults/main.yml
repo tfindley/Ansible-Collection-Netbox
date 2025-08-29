@@ -1,6 +1,11 @@
 ---
 # defaults file for hostsync
 
+hostsync_netbox_api: "{{ lookup('env', 'NETBOX_API') }}"
+hostsync_netbox_api_key: "{{ lookup('env', 'NETBOX_API_KEY') }}"
+hostsync_netbox_validcert: "{{ lookup('env', 'NETBOX_VALID_HTTPS') | bool | default(true) }}"
+hostsync_hostname: "{{ inventory_hostname }}"
+
 # ------
 hostsync_device_serialnumber: true
 hostsync_device_devicetype: true

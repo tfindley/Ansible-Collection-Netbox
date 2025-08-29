@@ -1,10 +1,15 @@
 # Netbox Configuration
 
-[![ansible-lint](https://github.com/tfindley/Ansible-Role-NetboxConfig/actions/workflows/ansible-lint.yml/badge.svg?branch=dev)](https://github.com/tfindley/Ansible-Role-NetboxConfig/actions/workflows/ansible-lint.yml)
+| Feature         | Working | Notes               |
+| --------------- | ------- | ------------------- |
+| `--diff` mode   | ✅      |                     |
+| `--check` mode  | ✅      |                     |
+| Idempotency     | ✅      |                     |
+| Linting         | ✅      | Except line-lengths |
 
-A brief description of the role goes here.
+This role is used to configure your netbox instance with data stored in .yml files that you provide it. This allows you to easily and progromatically populate Netbox using easily structured data. This is especially useful if you need to deploy Netbox multiple times, for example, into multiple offline environments, all of which require the same base data.
 
-Execution order
+## Execution order
 
 - preflight
 - extras::custom_fields
@@ -37,11 +42,11 @@ In order to run this role you will require:
 
 The following variables will also need to be set:
 
-| Variable Name              | Type | Required | Default                                      | Example                      | Playbook Env example                                      |
-| -------------------------- | ---- | -------- | -------------------------------------------- | ---------------------------- | --------------------------------------------------------- |
-| config_netbox_api       | str  | true     | `{{ netbox_api }}`                           | https://netboxurl.domain.tld | `netbox_api: "{{ lookup('env', 'NETBOX_API') }}"`         |
-| config_netbox_api_key   | str  | true     | `{{ netbox_api_key }}`                       | abcdef1234567890             | `netbox_api_key: "{{ lookup('env', 'NETBOX_API_KEY') }}"` |
-| config_netbox_validcert | bool | false    | `{{ netbox_validcert }} \| default(true) }}` | true                         |                                                           |
+| Variable Name           | Type | Required | Env. Variable        | Default | Example                      | Playbook value                                                  |
+| ----------------------- | ---- | -------- | -------------------- | ------- | ---------------------------- | --------------------------------------------------------------- |
+| config_netbox_api       | str  | true     | `NETBOX_API`         |         | https://netboxurl.domain.tld | `"{{ lookup('env', 'NETBOX_API') }}"`                           |
+| config_netbox_api_key   | str  | true     | `NETBOX_API_KEY`     |         | abcdef1234567890             | `"{{ lookup('env', 'NETBOX_API_KEY') }}"`                       |
+| config_netbox_validcert | bool | false    | `NETBOX_VALID_HTTPS` | `true`  | true                         | `"{{ lookup('env', 'NETBOX_VALID_HTTPS') \| default(true) }}"`  |
 
 
 ## Role Variables
@@ -71,19 +76,19 @@ Including an example of how to use your role (for instance, with variables passe
     # Standard variables for Netbox integration
     config_netbox_api: "{{ lookup('env', 'NETBOX_API') }}"  # This must be defined in your environmental variables.
     config_netbox_api_key: "{{ lookup('env', 'NETBOX_API_KEY') }}"  # This must be defined in your environmental variables. DO NOT HARD CODE!
-    config_netbox_validcert: false  # Change this variable to true if your Netbox server is using untrusted (i.e: self-signed) certificates
+    config_netbox_validcert: "{{ lookup('env', 'NETBOX_VALID_HTTPS') | bool | default(true) }}"  # Change this variable to true if your Netbox server is using untrusted (i.e: self-signed) certificates
 
 ```
 
 ## License
 
-BSD
+AGPL
 
 ## Author Information
 
 **Tristan Findley**
 
-Find out more about me [here](https://about.me/tfindley).
+Find out more about me [here](https://tfindley.co.uk).
 
 If you're fan of my work and would like to show your support:
 

@@ -24,6 +24,19 @@
 
 # ------
 # Racks: https://docs.ansible.com/ansible/latest/collections/netbox/netbox/netbox_rack_module.html#ansible-collections-netbox-netbox-netbox-rack-module
+- name: "NBConfig.DCIM - Assert dcim:rack_roles"
+  become: false
+  loop: "{{ config_dcim_racks }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when:
+    - config_dcim_racks is defined
+  ansible.builtin.assert:
+    that:
+      - "(item.status | default('active') | lower ) in config_val_status.dcim.racks "
+    quiet: true
+
+
 - name: "NBConfig.DCIM - Manage dcim:racks"
   become: false
   loop: "{{ config_dcim_racks }}"
@@ -137,6 +150,50 @@
       tags: "{{ (item.tags | default([])) + (config_tags_base | default([])) }}"
       custom_fields: "{{ item.custom_fields | default(omit) }}"  # Optional - must be pre-defined
     state: "{{ item.state | default('present') }}"  # Optional
+
+# ------
+# Device Interface Template: https://docs.ansible.com/ansible/latest/collections/netbox/netbox/netbox_device_interface_template_module.html#ansible-collections-netbox-netbox-netbox-device-interface-template-module
+- name: "NBConfig.DCIM - Manage dcim:device_type_interface"
+  become: false
+  loop: "{{ config_dcim_device_interface_template }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when:
+    - config_dcim_device_interface_template is defined
+  netbox.netbox.netbox_device_interface_template:
+    netbox_url: "{{ config_netbox_api }}"
+    netbox_token: "{{ config_netbox_api_key }}"
+    validate_certs: "{{ config_netbox_validcert }}"
+    data:
+      name: "{{ item.name }}"
+      description: "{{ item.description | default(omit) }}"  # Optional
+      device_type: "{{ item.device_type }}"
+      enabled: "{{ item.enabled | bool | default(true) }}"
+      mgmt_only: "{{ item.mgmt_only | bool | default(false) }}"
+      label: "{{ item.label | default(omit) }}"
+      poe_mode: "{{ item.poe_mode | default(omit) }}"
+      poe_type: "{{ item.poe_type | default(omit) }}"
+      type: "{{ item.type }}"
+    state: present
+
+# ------
+# Device Type Console Template: https://docs.ansible.com/ansible/latest/collections/netbox/netbox/netbox_console_port_template_module.html#ansible-collections-netbox-netbox-netbox-console-port-template-module
+- name: "NBConfig.DCIM - Manage dcim:device_type_console"
+  become: false
+  loop: "{{ config_dcim_device_console_template }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when:
+    - config_dcim_device_console_template is defined
+  netbox.netbox.netbox_console_port_template:
+    netbox_url: "{{ config_netbox_api }}"
+    netbox_token: "{{ config_netbox_api_key }}"
+    validate_certs: "{{ config_netbox_validcert }}"
+    data:
+      name: "{{ item.name }}"
+      device_type: "{{ item.device_type }}"
+      type: "{{ item.type }}"
+    state: present
 
 # ------
 # Device roles: https://docs.ansible.com/ansible/latest/collections/netbox/netbox/netbox_device_role_module.html

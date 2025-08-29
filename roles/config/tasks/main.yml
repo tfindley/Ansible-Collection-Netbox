@@ -16,6 +16,9 @@
 - name: "NBConfig.Main - Handoff to dcim task"
   ansible.builtin.include_tasks: dcim.yml
 
+- name: "NBConfig.Main - Handoff to ipam task"
+  ansible.builtin.include_tasks: ipam.yml
+
 - name: "NBConfig.Main - Handoff to virtualization task"
   ansible.builtin.include_tasks: virtualization.yml
 

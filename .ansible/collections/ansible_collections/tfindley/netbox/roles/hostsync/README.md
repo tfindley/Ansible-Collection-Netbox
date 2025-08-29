@@ -1,8 +1,15 @@
 # Sync host details into Netbox
 
+| Feature         | Working | Notes               |
+| --------------- | ------- | ------------------- |
+| `--diff` mode   | ✅      |                     |
+| `--check` mode  | ✅      |                     |
+| Idempotency     | ✅      |                     |
+| Linting         | ✅      | Except line-lengths |
+
 This role will sync your CI (Configuration Instance - a device or VM) informatino and update that hosts record in Netbox
 
-Execution order
+## Execution order
 
 - Determine Host (Physical) or Guest (Virtual) machine
 - Pull any existing records from Netbox
@@ -18,11 +25,11 @@ In order to run this role you will require:
 
 The following variables will also need to be set:
 
-| Variable Name              | Type | Required | Default                                      | Example                      | Playbook Env example                                      |
-| -------------------------- | ---- | -------- | -------------------------------------------- | ---------------------------- | --------------------------------------------------------- |
-| hostsync_netbox_api       | str  | true     | `{{ netbox_api }}`                           | https://netboxurl.domain.tld | `netbox_api: "{{ lookup('env', 'NETBOX_API') }}"`         |
-| hostsync_netbox_api_key   | str  | true     | `{{ netbox_api_key }}`                       | abcdef1234567890             | `netbox_api_key: "{{ lookup('env', 'NETBOX_API_KEY') }}"` |
-| hostsync_netbox_validcert | bool | false    | `{{ netbox_validcert }} \| default(true) }}` | true                         |                                                           |
+| Variable Name             | Type | Required | Env. Variable        | Default | Example                      | Playbook value                                                  |
+| ------------------------- | ---- | -------- | -------------------- | ------- | ---------------------------- | --------------------------------------------------------------- |
+| hostsync_netbox_api       | str  | true     | `NETBOX_API`         |         | https://netboxurl.domain.tld | `"{{ lookup('env', 'NETBOX_API') }}"`                           |
+| hostsync_netbox_api_key   | str  | true     | `NETBOX_API_KEY`     |         | abcdef1234567890             | `"{{ lookup('env', 'NETBOX_API_KEY') }}"`                       |
+| hostsync_netbox_validcert | bool | false    | `NETBOX_VALID_HTTPS` | `true`  | true                         | `"{{ lookup('env', 'NETBOX_VALID_HTTPS') \| default(true) }}"`  |
 
 ## Role Variables
 
@@ -49,24 +56,22 @@ Including an example of how to use your role (for instance, with variables passe
     - tfindley.netbox.hostsync
   vars:
     # Standard variables for Netbox integration
-    netbox_api: "{{ lookup('env', 'NETBOX_API') }}"  # This must be defined in your environmental variables.
-    netbox_api_key: "{{ lookup('env', 'NETBOX_API_KEY') }}"  # This must be defined in your environmental variables. DO NOT HARD CODE!
-    netbox_validcert: false  # Change this variable to true if your Netbox server is using untrusted (i.e: self-signed) certificates
+    hostsync_netbox_api: "{{ lookup('env', 'NETBOX_API') }}"  # This must be defined in your environmental variables.
+    hostsync_netbox_api_key: "{{ lookup('env', 'NETBOX_API_KEY') }}"  # This must be defined in your environmental variables. DO NOT HARD CODE!
+    hostsync_netbox_validcert: "{{ lookup('env', 'NETBOX_VALID_HTTPS') | bool | default(true) }}"  # Change this variable to true if your Netbox server is using untrusted (i.e: self-signed) certificates
 
 ```
 
 ## License
 
-BSD
+AGPL
 
 ## Author Information
 
 **Tristan Findley**
 
-Find out more about me [here](https://about.me/tfindley).
+Find out more about me [here](https://tfindley.co.uk).
 
 If you're fan of my work and would like to show your support:
-
-[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/yellow_img.png)](https://www.buymeacoffee.com/tristan)
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Z8Z016573P)

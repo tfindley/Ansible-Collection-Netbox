@@ -1,2 +1,10 @@
 ---
 # vars file for nbconfig
+config_status:
+  - offline
+  - active
+  - planned
+  - staged
+  - failed
+  - inventory
+  - decommissioning

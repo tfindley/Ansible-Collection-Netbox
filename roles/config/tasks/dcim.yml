@@ -24,6 +24,19 @@
 
 # ------
 # Racks: https://docs.ansible.com/ansible/latest/collections/netbox/netbox/netbox_rack_module.html#ansible-collections-netbox-netbox-netbox-rack-module
+- name: "NBConfig.DCIM - Assert dcim:rack_roles"
+  become: false
+  loop: "{{ config_dcim_racks }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when:
+    - config_dcim_racks is defined
+  ansible.builtin.assert:
+    that:
+      - "(item.status | default('active') | lower ) in config_val_status.dcim.racks "
+    quiet: true
+
+
 - name: "NBConfig.DCIM - Manage dcim:racks"
   become: false
   loop: "{{ config_dcim_racks }}"

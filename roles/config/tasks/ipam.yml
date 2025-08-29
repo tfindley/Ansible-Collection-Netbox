@@ -1,0 +1,183 @@
+---
+# tasks file for nbconfig
+
+# ------
+# IPAM VRF Group: https://docs.ansible.com/ansible/latest/collections/netbox/netbox/netbox_vrf_module.html#ansible-collections-netbox-netbox-netbox-vrf-module
+
+
+- name: "NBConfig.IPAM - Assert vrf"
+  become: false
+  loop: "{{ config_ipam_vrf }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when:
+    - config_ipam_vrf is defined
+  ansible.builtin.assert:
+    that:
+      - "item.name is defined and item.name | length > 0"
+      - "item.enforce_unique | default(false) | type_debug == 'bool'"
+      - "item.import_targets is not defined or (item.import_targets | type_debug) == 'list'"
+      - "item.export_targets is not defined or (item.export_targets | type_debug) == 'list'"
+      - "item.tags is not defined or (item.tags | type_debug) == 'list'"
+      - "item.custom_fields is not defined or (item.custom_fields | type_debug) == 'dict'"
+      - "item.state | default('present') in ['present','absent']"
+    quiet: true
+
+- name: "NBConfig.IPAM - Create vrf"
+  become: false
+  loop: "{{ config_ipam_vrf }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when:
+    - config_ipam_vrf is defined
+  netbox.netbox.netbox_vrf:
+    netbox_url: "{{ config_netbox_api }}"
+    netbox_token: "{{ config_netbox_api_key }}"
+    validate_certs: "{{ config_netbox_validcert }}"
+    data:
+      name: "{{ item.name }}"
+      rd: "{{ item.rd | default(omit) }}"
+      tenant: "{{ item.tenant | default(omit) }}"
+      enforce_unique: "{{ item.enforce_unique | bool | default(true) }}"
+      import_targets: "{{ item.import_targets | default(omit) }}"
+      export_targets: "{{ item.export_targets | default(omit) }}"
+      description: "{{ item.description | default(omit) }}"
+      tags: "{{ (item.tags | default([])) + (config_tags_base | default([])) }}"
+      custom_fields: "{{ item.custom_fields | default(omit) }}"
+    state: "{{ item.state | default('present') }}"  # Optional
+
+# ------
+# IPAM VLAN Group: https://docs.ansible.com/ansible/latest/collections/netbox/netbox/netbox_vlan_group_module.html#ansible-collections-netbox-netbox-netbox-vlan-group-module
+
+- name: "NBConfig.IPAM - Assert ipam:vlan_group"
+  become: false
+  loop: "{{ config_ipam_vlan_group }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when:
+    - config_ipam_vlan_group is defined
+  ansible.builtin.assert:
+    that:
+      - "item.name is defined and item.name | length > 0"
+      - "item.slug is defined and item.slug | length > 0"
+      - "item.vid_ranges | type_debug == 'list'"
+      - "item.scope_type is not defined or item.scope_type in config_val_scopes.ipam.vlan_groups"
+      - "item.tags is not defined or (item.tags | type_debug) == 'list'"
+      - "item.state | default('present') in ['present','absent']"
+    quiet: true
+
+- name: NBConfig.IPAM - Create vlan group
+  become: false
+  loop: "{{ config_ipam_vlan_group }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when:
+    - config_ipam_vlan_group is defined
+  netbox.netbox.netbox_vlan_group:
+    netbox_url: "{{ config_netbox_api }}"
+    netbox_token: "{{ config_netbox_api_key }}"
+    validate_certs: "{{ config_netbox_validcert }}"
+    data:
+      name: "{{ item.name }}"
+      slug: "{{ item.slug }}"
+      vid_ranges: "{{ item.vid_ranges | default(omit) }}"
+      scope_type: "{{ item.scope_type | default(omit) }}"
+      scope: "{{ item.scope | default(omit) }}"
+      tags: "{{ (item.tags | default([])) + (config_tags_base | default([])) }}"
+      custom_fields: "{{ item.custom_fields | default(omit) }}"
+    state: "{{ item.state | default('present') }}"  # Optional
+
+# ------
+# IPAM VLAN: https://docs.ansible.com/ansible/latest/collections/netbox/netbox/netbox_vlan_module.html#ansible-collections-netbox-netbox-netbox-vlan-module
+
+- name: "NBConfig.IPAM - Assert ipam:vlan"
+  become: false
+  loop: "{{ config_ipam_vlan }}"
+  loop_control:
+    label: "{{ item.vid }}:{{ item.name }}"
+  when:
+    - config_ipam_vlan is defined
+  ansible.builtin.assert:
+    that:
+      - "item.name is defined and item.name | length > 0"
+      - "item.vid | int"
+      - "item.vid is not defined or (item.vid | type_debug) == 'int'"
+      - "item.tags is not defined or (item.tags | type_debug) == 'list'"
+      - "(item.status | default('active') | lower ) in config_val_status.ipam.vlans"
+      - "item.state | default('present') in ['present','absent']"
+    quiet: true
+
+- name: "NBConfig.IPAM - Create vlan"
+  become: false
+  loop: "{{ config_ipam_vlan }}"
+  loop_control:
+    label: "{{ item.vid }}:{{ item.name }}"
+  when:
+    - config_ipam_vlan is defined
+  netbox.netbox.netbox_vlan:
+    netbox_url: "{{ config_netbox_api }}"
+    netbox_token: "{{ config_netbox_api_key }}"
+    validate_certs: "{{ config_netbox_validcert }}"
+    data:
+      name: "{{ item.name }}"
+      vid: "{{ item.vid }}"
+      site: "{{ item.site | default(omit) }}"
+      vlan_group: "{{ item.vlan_group | default(omit) }}"
+      tenant: "{{ item.tenant | default(omit) }}"
+      status: "{{ item.status | default(omit) }}"
+      vlan_role: "{{ item.vlan_role | default(omit) }}"
+      description: "{{ item.description | default(omit) }}"
+      tags: "{{ (item.tags | default([])) + (config_tags_base | default([])) }}"
+      custom_fields: "{{ item.custom_fields | default(omit) }}"
+    state: "{{ item.state | default('present') }}"  # Optional
+
+# ------
+# IPAM Prefixes: https://docs.ansible.com/ansible/latest/collections/netbox/netbox/netbox_prefix_module.html#ansible-collections-netbox-netbox-netbox-prefix-module
+- name: "NBConfig.IPAM - Assert ipam:prefix"
+  become: false
+  loop: "{{ config_ipam_prefix }}"
+  loop_control:
+    label: "{{ item.prefix }}"
+  when:
+    - config_ipam_prefix is defined
+  ansible.builtin.assert:
+    that:
+      - "item.prefix | ansible.utils.ipaddr"
+      - "item.family is not defined or (item.family | type_debug) == 'int'"
+      - "item.vlan is not defined or (item.vlan | type_debug) == 'int'"
+      - "(item.status | default('active') | lower ) in config_val_status.ipam.prefixes"
+      - "item.mark_utilized | default(false) | type_debug == 'bool'"
+      - "item.is_pool | default(false) | type_debug == 'bool'"
+      - "item.tags is not defined or (item.tags | type_debug) == 'list'"
+      - "item.first_available | default(false) | type_debug == 'bool'"
+      - "item.state | default('present') in ['present','absent']"
+    quiet: true
+
+- name: "NBConfig.IPAM - Create prefix"
+  become: false
+  loop: "{{ config_ipam_prefix }}"
+  loop_control:
+    label: "{{ item.prefix }}"
+  when:
+    - config_ipam_prefix is defined
+  netbox.netbox.netbox_prefix:
+    netbox_url: "{{ config_netbox_api }}"
+    netbox_token: "{{ config_netbox_api_key }}"
+    validate_certs: "{{ config_netbox_validcert }}"
+    data:
+      prefix: "{{ item.prefix | ansible.utils.ipaddr }}"
+      family: "{{ item.family | default(omit) }}"
+      site: "{{ item.site | default(omit) }}"
+      vrf: "{{ item.vrf | default(omit) }}"
+      tenant: "{{ item.tenant | default(omit) }}"
+      vlan: "{{ item.vlan | default(omit) }}"
+      status: "{{ item.status | default(omit) }}"
+      prefix_length: "{{ item.prefix_length | default(omit) }}"
+      prefix_role: "{{ item.prefix_role | default(omit) }}"
+      mark_utilized: "{{ item.mark_utilized | default(false) }}"
+      description: "{{ item.description | default(omit) }}"
+      is_pool: "{{ item.is_pool | default(omit) }}"
+      tags: "{{ (item.tags | default([])) + (config_tags_base | default([])) }}"
+      custom_fields: "{{ item.custom_fields | default(omit) }}"
+    first_available: "{{ item.first_available | default(false) }}"
+    state: "{{ item.state | default('present') }}"  # Optional

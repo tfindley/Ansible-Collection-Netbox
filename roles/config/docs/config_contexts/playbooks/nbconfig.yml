@@ -5,7 +5,7 @@
   gather_facts: false
 
   roles:
-    - nbconfig
+    - tfindley.netbox.config
 
   vars:
     config_netbox_api: "{{ lookup('env', 'NETBOX_API') }}"

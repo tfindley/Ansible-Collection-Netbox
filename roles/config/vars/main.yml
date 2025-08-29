@@ -1,10 +1,78 @@
 ---
 # vars file for nbconfig
-config_status:
-  - offline
-  - active
-  - planned
-  - staged
-  - failed
-  - inventory
-  - decommissioning
+
+# status validation dictionary
+config_val_status:
+  dcim:
+    racks:
+      - "reserved"
+      - "available"
+      - "planned"
+      - "active"
+      - "deprecated"
+    sites:
+      - "planned"
+      - "staging"
+      - "active"
+      - "decommissioning"
+      - "retired"
+    locations:
+      - "planned"
+      - "staging"
+      - "active"
+      - "decommissioning"
+      - "retired"
+    devices:
+      - "offline"
+      - "active"
+      - "planned"
+      - "staged"
+      - "failed"
+      - "inventory"
+      - "decommissioning"
+  virtualization:
+    machines:
+      - "offline"
+      - "active"
+      - "planned"
+      - "staged"
+      - "failed"
+      - "decommissioning"
+    clustres:
+      - "offline"
+      - "active"
+      - "planned"
+      - "staged"
+      - "decommissioning"
+  ipam:
+    ip-addresses:
+      - "active"
+      - "reserved"
+      - "deprecated"
+      - "dhcp"
+      - "slaac"
+    prefixes:
+      - "container"
+      - "active"
+      - "reserved"
+      - "deprecated"
+    ip-ranges:
+      - "active"
+      - "reserved"
+      - "deprecated"
+    vlans:
+      - "active"
+      - "reserved"
+      - "deprecated"
+
+# scope validation dictionary
+config_val_scopes:
+  ipam:
+    vlan_groups:
+      - "dcim.location"
+      - "dcim.rack"
+      - "dcim.region"
+      - "dcim.site"
+      - "dcim.sitegroup"
+      - "virtualization.cluster"
+      - "virtualization.clustergroup"

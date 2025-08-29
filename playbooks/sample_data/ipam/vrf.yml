@@ -1,0 +1,6 @@
+---
+
+config_ipam_vrf:
+  - name: "DM-Albany"
+    tenant: "dunder-mifflin"
+    enforce_unique: true

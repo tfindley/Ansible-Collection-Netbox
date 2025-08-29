@@ -1,0 +1,5 @@
+---
+config_dcim_device_console_template:
+  - name: "USB-C"
+    device_type: "dm_bfg_9000"
+    type: "usb-c"

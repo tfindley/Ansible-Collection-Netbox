@@ -6,11 +6,11 @@
 
 - name: Gather all network interfaces
   ansible.builtin.set_fact:
-    interfaces: "{{ ansible_interfaces | difference(hostsync_interface_exclude) | list | sort }}"
+    hostsync_interfaces: "{{ ansible_interfaces | difference(hostsync_interface_exclude) | list | sort }}"
 
 - name: Initialize network adapters dictionary
   ansible.builtin.set_fact:
-    network_adapters: {}
+    hostsync_network_adapters: {}
 
 - name: Trigger Physical Device hostsync
   when:

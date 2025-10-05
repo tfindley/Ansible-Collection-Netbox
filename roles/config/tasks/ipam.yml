@@ -47,7 +47,7 @@
     state: "{{ item.state | default('present') }}"  # Optional
 
 # ------
-# IPAM VLAN Group: https://docs.ansible.com/ansible/latest/collections/netbox/netbox/netbox_vlan_group_module.html#ansible-collections-netbox-netbox-netbox-vlan-group-module
+# IPAM VLAN Group: https://docs.ansible.com/ansible/latest/collections/netbox/netbox/netbox_vlan_group_module.html
 
 - name: "NBConfig.IPAM - Assert ipam:vlan_group"
   become: false
@@ -132,7 +132,7 @@
     state: "{{ item.state | default('present') }}"  # Optional
 
 # ------
-# IPAM Prefixes: https://docs.ansible.com/ansible/latest/collections/netbox/netbox/netbox_prefix_module.html#ansible-collections-netbox-netbox-netbox-prefix-module
+# IPAM Prefixes: https://docs.ansible.com/ansible/latest/collections/netbox/netbox/netbox_prefix_module.html
 - name: "NBConfig.IPAM - Assert ipam:prefix"
   become: false
   loop: "{{ config_ipam_prefix }}"

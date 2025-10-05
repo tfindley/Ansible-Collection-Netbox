@@ -29,7 +29,7 @@
     headers:
       Authorization: Token {{ hostsync_netbox_api_key }}
       Accept: application/json
-  register: api_check
+  register: _hostsync_api_check
   failed_when:
-    - "'Invalid token' in api_check.content"
-    - "'Failed to establish connection to Netbox API' in api_check.content"
+    - "'Invalid token' in _hostsync_api_check.content"
+    - "'Failed to establish connection to Netbox API' in _hostsync_api_check.content"

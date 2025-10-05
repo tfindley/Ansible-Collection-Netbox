@@ -1,0 +1,59 @@
+- name: Create a new VM in Netbox
+  hosts: localhost
+  connection: local
+
+# TODO:
+# Change terraform-managed tag to terraform_managed
+# FIx tagging for IP addresses - terraform-managed cannot be used for IPs
+
+  vars:
+    config_netbox_api: "{{ lookup('env', 'NETBOX_API') }}"
+    config_netbox_api_key: "{{ lookup('env', 'NETBOX_API_TOKEN') }}"
+    config_netbox_validcert: "{{ lookup('env', 'NETBOX_VALID_HTTPS') | bool | default(true) }}"
+    config_tags_base: "{{ netbox_tags_base | default(['ansible_managed', 'terraform-managed']) | list }}"
+    config_netbox_version: "{{ netbox_version | default(4) }}"
+
+  pre_tasks:
+
+    - name: Check required information has been set
+      become: false
+      ansible.builtin.assert:
+        that:
+          - config_netbox_api is defined and config_netbox_api| length > 0
+          - config_netbox_api_key is defined and config_netbox_api_key | length > 0
+          - config_tags_base is defined and config_tags_base | list
+          - config_netbox_version is defined and config_netbox_version is version(3, '>=')
+
+    - name: Check that you can connect to NetBox
+      become: false
+      ansible.builtin.uri:
+        url: "{{ config_netbox_api }}"
+        validate_certs: "{{ config_netbox_validcert }}"
+
+    - name: Test NetBox API Key
+      become: false
+      ansible.builtin.uri:
+        url: "{{ config_netbox_api }}/api/"
+        validate_certs: "{{ config_netbox_validcert }}"
+        method: GET
+        return_content: true
+        headers:
+          Authorization: Token {{ config_netbox_api_key }}
+          Accept: application/json
+      register: _config_api_check
+      failed_when:
+        - "'Invalid token' in _config_api_check.content"
+        - "'Failed to establish connection to Netbox API' in _config_api_check.content"
+
+  tasks:
+    - name: Obtain details of a single vm primary IP4 from NetBox
+      ansible.builtin.debug:
+        msg: "{{ query('netbox.netbox.nb_lookup', 'virtual-machines', api_endpoint=config_netbox_api, token=config_netbox_api_key, api_filter='cluster=Forge name=TestVMNew')[0]['value']['primary_ip4']['address'] }}"  # noqa: yaml[line-length]
+
+    - name: Count number of IP addresses for adapter
+      ansible.builtin.debug:
+        msg: "{{ query('netbox.netbox.nb_lookup', 'virtualization-interfaces', api_endpoint=config_netbox_api, token=config_netbox_api_key, api_filter='virtual_machine=TestVMNew name=ens192')[0]['value']['count_ipaddresses'] }}"  # noqa: yaml[line-length]
+
+    - name: Get IP Address based on adapter ID
+      ansible.builtin.debug:
+        msg: "{{ query('netbox.netbox.nb_lookup', 'ip-addresses', api_endpoint=config_netbox_api, token=config_netbox_api_key, api_filter='vminterface_id=69') }}"  # noqa: yaml[line-length]

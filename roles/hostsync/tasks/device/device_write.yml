@@ -56,7 +56,7 @@
         msg: |
           "device_model: {{ hostsync_model_output.stdout | default('unset') | lower | replace(' ', '_') }}"
 
-    - name: Debug device_type variable
+    - name: Debug device_type variable  # noqa: yaml[line-length]
       ansible.builtin.debug:
         msg: |
           "device_type: {{ hostsync_mb_lookup.manufacturer | default('unset') }}_{{ hostsync_model_output.stdout | default('unset') | lower | replace(' ', '_') }}"

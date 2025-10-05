@@ -152,7 +152,7 @@
     state: "{{ item.state | default('present') }}"  # Optional
 
 # ------
-# Device Interface Template: https://docs.ansible.com/ansible/latest/collections/netbox/netbox/netbox_device_interface_template_module.html#ansible-collections-netbox-netbox-netbox-device-interface-template-module
+# Device Interface Template: https://docs.ansible.com/ansible/latest/collections/netbox/netbox/netbox_device_interface_template_module.html
 - name: "NBConfig.DCIM - Manage dcim:device_type_interface"
   become: false
   loop: "{{ config_dcim_device_interface_template }}"
@@ -177,7 +177,7 @@
     state: present
 
 # ------
-# Device Type Console Template: https://docs.ansible.com/ansible/latest/collections/netbox/netbox/netbox_console_port_template_module.html#ansible-collections-netbox-netbox-netbox-console-port-template-module
+# Device Type Console Template: https://docs.ansible.com/ansible/latest/collections/netbox/netbox/netbox_console_port_template_module.html
 - name: "NBConfig.DCIM - Manage dcim:device_type_console"
   become: false
   loop: "{{ config_dcim_device_console_template }}"

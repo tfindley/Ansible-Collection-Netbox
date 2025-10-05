@@ -18,12 +18,12 @@
 
 - name: "Enumerate adapter {{ item }}"
   ansible.builtin.include_tasks: device/adapter.yml
-  loop: "{{ interfaces }}"
+  loop: "{{ hostsync_interfaces }}"
   when:
     - hostvars[hostsync_hostname]['ansible_%s' | format(item)]['type'] != 'bonding'
 
 - name: "Enumerate bond {{ item }}"
   ansible.builtin.include_tasks: device/adapter.yml
-  loop: "{{ interfaces }}"
+  loop: "{{ hostsync_interfaces }}"
   when:
     - hostvars[hostsync_hostname]['ansible_%s' | format(item)]['type'] == 'bonding'

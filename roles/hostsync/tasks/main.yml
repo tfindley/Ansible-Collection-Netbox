@@ -4,6 +4,9 @@
 - name: Run PreFlight checks
   ansible.builtin.include_tasks: preflight.yml
 
+- name: Gather all host ID information
+  ansible.builtin.include_tasks: hostfact.yml
+
 - name: Gather all network interfaces
   ansible.builtin.set_fact:
     hostsync_interfaces: "{{ ansible_interfaces | difference(hostsync_interface_exclude) | list | sort }}"

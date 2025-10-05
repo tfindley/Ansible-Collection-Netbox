@@ -147,6 +147,7 @@
       - Data to be written
       - "------------------"
       - "name: {{ hostsync_hostname }}"
+      - "platform: {{ hostsync_os_selection_slug }}"
       - "custom_fields: {{ hostsync_device_custom_fields_mapping }}"
       - "device_type: {{ hostsync_mb_lookup.manufacturer }}_{{ hostsync_model_output.stdout | default('unset') | lower | replace(' ', '_') }}"
       - "serial: {{ hostsync_serial_output.stdout | default(omit) }}"
@@ -169,6 +170,7 @@
     data:
       name: "{{ hostsync_hostname }}"
       # device_type: "{{ hostsync_model_output.stdout | lower | replace(' ', '-') }}"
+      platform: "{{ hostsync_os_selection_slug }}"
       custom_fields: "{{ hostsync_device_custom_fields_mapping }}"
       device_type: "{{ hostsync_mb_lookup.manufacturer }}_{{ hostsync_model_output.stdout | lower | replace(' ', '_') }}"
       # primary_ip4: "{{ hostsync_primary_ipv4 }}"  # No sense writing this as we required it to access the host in Netbox

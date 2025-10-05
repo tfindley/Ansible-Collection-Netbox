@@ -22,7 +22,7 @@
   connection: local
   become: false
   ansible.builtin.set_fact:
-    network_adapters: "{{ network_adapters | combine(
+    hostsync_network_adapters: "{{ hostsync_network_adapters | combine(
       {
           interface_name: {
               'name': hostsync_viface_details.device,
@@ -41,7 +41,7 @@
   when:
     - ansible_check_mode | bool
   ansible.builtin.debug:
-    msg: "{{ network_adapters[interface_name] }}"
+    msg: "{{ hostsync_network_adapters[interface_name] }}"
 
 - name: "Write interface to Netbox {{ interface_name }}"
   delegate_to: localhost
@@ -53,13 +53,13 @@
     validate_certs: "{{ hostsync_netbox_validcert }}"
     data:
       virtual_machine: "{{ hostsync_hostname }}"
-      name: "{{ network_adapters[interface_name]['name'] }}"
-      # label: "{{ network_adapters[interface_name]['name'] }}"
-      mac_address: "{{ network_adapters[interface_name]['mac'] }}"
-      enabled: "{{ network_adapters[interface_name]['active'] }}"
-      mtu: "{{ network_adapters[interface_name]['mtu'] }}"
-      parent_interface: "{{ network_adapters[interface_name]['parent'] | default(omit) }}"
-      # bridge: "{{ network_adapters[interface_name]['bridge'] | default(omit) }}"
+      name: "{{ hostsync_network_adapters[interface_name]['name'] }}"
+      # label: "{{ hostsync_network_adapters[interface_name]['name'] }}"
+      mac_address: "{{ hostsync_network_adapters[interface_name]['mac'] }}"
+      enabled: "{{ hostsync_network_adapters[interface_name]['active'] }}"
+      mtu: "{{ hostsync_network_adapters[interface_name]['mtu'] }}"
+      parent_interface: "{{ hostsync_network_adapters[interface_name]['parent'] | default(omit) }}"
+      # bridge: "{{ hostsync_network_adapters[interface_name]['bridge'] | default(omit) }}"
       tags:
         - 'ansible_inventoried'
     state: present

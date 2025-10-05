@@ -1,0 +1,17 @@
+# - name: Establish connections to Netbox
+#   ansible.builtin.import_playbook: vibdc.deployment.netbox_connect
+#   vars:
+#     netbox_enabled: true
+#   when:
+#     - netbox_enabled | bool
+
+- name: Perform Host Sync
+  hosts:
+    - all
+
+  gather_facts: true
+  roles:
+    - tfindley.netbox.hostsync
+
+  vars:
+    # netbox_tags: []

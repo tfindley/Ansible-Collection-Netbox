@@ -24,4 +24,4 @@
 
 # - name: Display network adapter dictionary
 #   ansible.builtin.debug:
-#     var: network_adapters
+#     var: hostsync_network_adapters

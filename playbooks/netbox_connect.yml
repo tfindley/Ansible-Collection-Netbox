@@ -1,0 +1,55 @@
+---
+- name: Environment credential retrieval (Netbox)
+  hosts:
+    - all
+  vars:
+    netbox_enabled: true
+
+  gather_facts: false
+  tasks:
+    # Standard variables for Netbox integration
+    - name: Set Netbox variables  # noqa: run-once[task]
+      become: false
+      no_log: true
+      when: netbox_enabled | bool
+      delegate_to: localhost
+      connection: local
+      run_once: true
+      ansible.builtin.set_fact:
+        netbox_api: "{{ lookup('env', 'NETBOX_API') }}"  # This must be defined in your environmental variables.
+        netbox_api_key: "{{ lookup('env', 'NETBOX_API_KEY') }}"  # This must be defined in your environmental variables. DO NOT HARD CODE!
+        netbox_validcert: false  # Change this variable to true if your Netbox server is using untrusted (i.e: self-signed) certificates
+        # netbox_tags: []  # This var must be initialised as a blank list
+
+# Use the supplied variables to query the Netbox endpoint. Should return 200 if working
+    - name: Check that you can connect to NetBox  # noqa: run-once[task]
+      become: false
+      no_log: true
+      when: netbox_enabled | bool
+      delegate_to: localhost
+      connection: local
+      run_once: true
+      ansible.builtin.uri:
+        url: "{{ netbox_api }}"
+        validate_certs: "{{ netbox_validcert }}"
+
+# Use the supplied variables to access the Netbox API endpoint. Should return 200 if working
+    - name: Test NetBox API Key  # noqa: run-once[task]
+      become: false
+      no_log: true
+      when: netbox_enabled | bool
+      delegate_to: localhost
+      connection: local
+      run_once: true
+      ansible.builtin.uri:
+        url: "{{ netbox_api }}/api/"
+        validate_certs: "{{ netbox_validcert }}"
+        method: GET
+        return_content: true
+        headers:
+          Authorization: Token {{ netbox_api_key }}
+          Accept: application/json
+      register: api_check
+      failed_when:
+        - "'Invalid token' in api_check.content"
+        - "'Failed to establish connection to Netbox API' in api_check.content"

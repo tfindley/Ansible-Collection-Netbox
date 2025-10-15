@@ -2,12 +2,12 @@
 
 # ------
 # Get serial number
-- name: Compute serial number
+- name: "Hostsync.Device.Write - Compute serial number"
   when:
     - hostsync_device_serialnumber | default(true) | bool
   block:
 
-    - name: Get serial number  # noqa: no-changed-when command-instead-of-shell
+    - name: "Hostsync.Device.Write - Get serial number"  # noqa: no-changed-when command-instead-of-shell
       become: true
       register: hostsync_serial_output
       failed_when: hostsync_serial_output.rc != 0
@@ -15,7 +15,7 @@
       ansible.builtin.shell:
         cmd: "{{ hostsync_mb_lookup.serialno }}"
 
-    - name: Set serial number (Sample data)
+    - name: Hostsync.Device.Write - Set serial number (Sample data)
       become: false
       when:
         - ansible_check_mode | bool
@@ -25,12 +25,12 @@
 
 # ------
 
-- name: Compute serial number
+- name: "Hostsync.Device.Write - Compute serial number"
   when:
     - hostsync_device_devicetype | default(true) | bool
   block:
 
-    - name: Get Product name  # noqa: no-changed-when command-instead-of-shell
+    - name: "Hostsync.Device.Write - Get Product name"  # noqa: no-changed-when command-instead-of-shell
       become: true
       register: hostsync_model_output
       failed_when: hostsync_model_output.rc != 0
@@ -38,7 +38,7 @@
       ansible.builtin.shell:
         cmd: "{{ hostsync_mb_lookup.model }}"
 
-    - name: Set Product Name (Sample data)
+    - name: "Hostsync.Device.Write - Set Product Name (Sample data)"
       become: false
       when:
         - ansible_check_mode | bool
@@ -46,17 +46,17 @@
         hostsync_model_output:
           stdout: 'PowerEdge R760xa'
 
-    - name: Debug manufacturer variable
+    - name: "Hostsync.Device.Write - Debug manufacturer variable"
       ansible.builtin.debug:
         msg: |
           "device_manufacturer: {{ hostsync_mb_lookup.manufacturer | default('unset') }}"
 
-    - name: Debug model varialbe
+    - name: "Hostsync.Device.Write - Debug model varialbe"
       ansible.builtin.debug:
         msg: |
           "device_model: {{ hostsync_model_output.stdout | default('unset') | lower | replace(' ', '_') }}"
 
-    - name: Debug device_type variable  # noqa: yaml[line-length]
+    - name: "Hostsync.Device.Write - Debug device_type variable"  # noqa: yaml[line-length]
       ansible.builtin.debug:
         msg: |
           "device_type: {{ hostsync_mb_lookup.manufacturer | default('unset') }}_{{ hostsync_model_output.stdout | default('unset') | lower | replace(' ', '_') }}"
@@ -136,7 +136,7 @@
 # ------
 # Write back all information to Netbox
 
-- name: Debug data
+- name: "Hostsync.Device.Write - Debug data"
   delegate_to: localhost
   connection: local
   become: false
@@ -157,7 +157,7 @@
       - "------------------"
       - "{{ netbox_ci_info.device }}"
 
-- name: Write CI information
+- name: "Hostsync.Device.Write - Write CI information"
   delegate_to: localhost
   connection: local
   become: false

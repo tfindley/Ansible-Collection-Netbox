@@ -1,0 +1,181 @@
+- name: Create a new VM in Netbox
+  hosts: localhost
+  connection: local
+
+# TODO:
+# Change terraform-managed tag to terraform_managed
+# FIx tagging for IP addresses - terraform-managed cannot be used for IPs
+
+  vars:
+    config_netbox_api: "{{ lookup('env', 'NETBOX_API') }}"
+    config_netbox_api_key: "{{ lookup('env', 'NETBOX_API_TOKEN') }}"
+    config_netbox_validcert: "{{ lookup('env', 'NETBOX_VALID_HTTPS') | bool | default(true) }}"
+    config_tags_base: "{{ netbox_tags_base | default(['ansible_managed', 'terraform-managed']) | list }}"
+    config_netbox_version: "{{ netbox_version | default(4) }}"
+
+    newvm_name: "TestVMNew"
+    newvm_tenant: ryckoort
+    newvm_site: thuis
+    newvm_cluster: Forge
+    newvm_platform: linux_rocky_10
+    newvm_virtual_machine_role: vm
+    newvm_status: "planned"
+    newvm_memory_mb: 8192
+    newvm_cpu_cores_per_socket: 1
+    newvm_cpu_sockets: 2
+    newvm_hypervisor_agent_type: qemu
+    newvm_proxmox_bios: ovmf
+    newvm_newip_prefix: "192.168.8.0/24"
+    newvm_newip_vrf: Thuis Lab
+    newvm_newip_dns: "testvmnew.lab.findley.pm"
+
+    newvm:
+      name: "TestVMNew"
+      tenant: ryckoort
+      site: thuis
+      cluster: Forge
+      platform: linux_rocky_10
+      virtual_machine_role: vm
+      status: "planned"
+      memory_mb: 8192
+      cpu_cores_per_socket: 1
+      cpu_sockets: 2
+      hypervisor_agent_type: qemu
+      proxmox_bios: ovmf
+      interface:
+        - name: ens192
+          adapter_model: virtio
+          proxmox_network_bridge: vmbr0
+          proxmox_prefix_id: 19
+          ip:
+            - prefix: "192.168.8.0/24"
+              vrf: 8
+              dns_name: "testvmnew.lab.findley.pm"
+              primary: true
+      disk:
+        - name: scsi0
+          size_mb: 60000
+
+  pre_tasks:
+
+    - name: Check required information has been set
+      become: false
+      ansible.builtin.assert:
+        that:
+          - config_netbox_api is defined and config_netbox_api| length > 0
+          - config_netbox_api_key is defined and config_netbox_api_key | length > 0
+          - config_tags_base is defined and config_tags_base | list
+          - config_netbox_version is defined and config_netbox_version is version(3, '>=')
+
+    - name: Check that you can connect to NetBox
+      become: false
+      ansible.builtin.uri:
+        url: "{{ config_netbox_api }}"
+        validate_certs: "{{ config_netbox_validcert }}"
+
+    - name: Test NetBox API Key
+      become: false
+      ansible.builtin.uri:
+        url: "{{ config_netbox_api }}/api/"
+        validate_certs: "{{ config_netbox_validcert }}"
+        method: GET
+        return_content: true
+        headers:
+          Authorization: Token {{ config_netbox_api_key }}
+          Accept: application/json
+      register: _config_api_check
+      failed_when:
+        - "'Invalid token' in _config_api_check.content"
+        - "'Failed to establish connection to Netbox API' in _config_api_check.content"
+
+  tasks:
+    - name: Update vcpus, memory and disk of an existing virtual machine
+      netbox.netbox.netbox_virtual_machine:
+        netbox_url: "{{ config_netbox_api }}"
+        netbox_token: "{{ config_netbox_api_key }}"
+        validate_certs: "{{ config_netbox_validcert }}"
+        data:
+          name: "{{ newvm_name }}"
+          # description: "Example VM built from Ansible"
+          tenant: "{{ newvm_tenant }}"
+          site: "{{ newvm_site }}"
+          cluster: "{{ newvm_cluster }}"
+          platform: "{{ newvm_platform }}"
+          virtual_machine_role: "{{ newvm_virtual_machine_role }}"
+          status: "{{ newvm_status }}"
+          vcpus: "{{ ((newvm_cpu_cores_per_socket | int) * (newvm_cpu_sockets | int)) | int }}"
+          memory: "{{ newvm_memory_mb | int }}"
+          tags: "{{ (item.tags | default([])) + (config_tags_base | default([])) }}"
+          custom_fields:
+            cpu_sockets: "{{ newvm_cpu_sockets }}"
+            cpu_cores_per_socket: "{{ newvm_cpu_cores_per_socket }}"
+            hypervisor_agent_type: "{{ newvm_hypervisor_agent_type }}"
+            proxmox_bios: "{{ newvm_proxmox_bios }}"
+        state: present
+
+    - name: Create virtual disk
+      netbox.netbox.netbox_virtual_disk:
+        netbox_url: "{{ config_netbox_api }}"
+        netbox_token: "{{ config_netbox_api_key }}"
+        validate_certs: "{{ config_netbox_validcert }}"
+        data:
+          virtual_machine: "{{ newvm_name }}"
+          name: scsi0
+          size: 60000
+          tags: "{{ (item.tags | default([])) + (config_tags_base | default([])) }}"
+        state: present
+
+    - name: Create interface within NetBox with only required information
+      register: new_interface
+      netbox.netbox.netbox_vm_interface:
+        netbox_url: "{{ config_netbox_api }}"
+        netbox_token: "{{ config_netbox_api_key }}"
+        validate_certs: "{{ config_netbox_validcert }}"
+        data:
+          virtual_machine: "{{ newvm_name }}"
+          name: ens192
+          vrf: Thuis Lab
+          tags: "{{ (item.tags | default([])) + (config_tags_base | default([])) }}"
+          custom_fields:
+            adapter_model: virtio
+            proxmox_network_bridge: vmbr0
+            proxmox_prefix_id: 19
+        state: present
+
+    - name: Report new interface
+      ansible.builtin.debug:
+        var: new_interface
+
+    - name: "Get a new available IP inside 192.168.8.0/24"
+      register: new_ip
+      when:
+        - not ansible_check_mode
+      netbox.netbox.netbox_ip_address:
+        netbox_url: "{{ config_netbox_api }}"
+        netbox_token: "{{ config_netbox_api_key }}"
+        validate_certs: "{{ config_netbox_validcert }}"
+        data:
+          prefix: "{{ newvm_newip_prefix }}"
+          vrf: "{{ newvm_newip_vrf }}"
+          dns_name: "{{ newvm_newip_dns }}"
+          assigned_object:
+            name: "{{ new_interface.interface.name }}"
+            virtual_machine: "{{ newvm_name }}"
+            device: "{{ new_interface.interface.id }}"
+          # tags: "{{ (item.tags | default([])) + (config_tags_base | default([])) }}"
+        state: new
+
+    - name: Debug new IP
+      when:
+        - not ansible_check_mode
+      ansible.builtin.debug:
+        var: new_ip
+
+    - name: Update network primary IPV4 of new VM
+      netbox.netbox.netbox_virtual_machine:
+        netbox_url: "{{ config_netbox_api }}"
+        netbox_token: "{{ config_netbox_api_key }}"
+        validate_certs: "{{ config_netbox_validcert }}"
+        data:
+          name: "{{ newvm_name }}"
+          primary_ip4: "{{ new_ip.ip_address.address }}"

@@ -1,6 +1,5 @@
 ---
-
-- name: Write VM information
+- name: "Hostsync.Virtual.Write - Write VM information"
   delegate_to: localhost
   connection: local
   become: false
@@ -19,7 +18,7 @@
     state: present
 
 
-- name: Debug data
+- name: "Hostsync.Virtual.Write - Debug data"
   delegate_to: localhost
   connection: local
   become: false

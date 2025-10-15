@@ -1,6 +1,6 @@
 ---
 
-- name: "Fetch existing CI (VM) information from NetBox"
+- name: "Hostsync.Virtual - Fetch existing CI (VM) information from NetBox"
   delegate_to: localhost
   connection: local
   become: false
@@ -13,17 +13,27 @@
     data:
       name: "{{ hostsync_hostname }}"
 
-- name: "Write new CI (VM) information to existing record in NetBox"
+- name: "Hostsync.Virtual - Write new CI (VM) information to existing record in NetBox"
   ansible.builtin.include_tasks: virtual/vm_write.yml
 
-- name: "Enumerate adapter {{ item }}"
-  ansible.builtin.include_tasks: virtual/adapter.yml
-  loop: "{{ hostsync_interfaces }}"
-  when:
-    - hostvars[hostsync_hostname]['ansible_%s' | format(item)]['type'] != 'bonding'
+# - name: "Enumerate adapter {{ item }}"
+#   ansible.builtin.include_tasks: virtual/adapter.yml
+#   loop: "{{ hostsync_interfaces }}"
+#   when:
+#     - hostvars[hostsync_hostname]['ansible_%s' | format(item)]['type'] != 'bonding'
 
-- name: "Enumerate bond {{ item }}"
-  ansible.builtin.include_tasks: virtual/adapter.yml
-  loop: "{{ hostsync_interfaces }}"
-  when:
-    - hostvars[hostsync_hostname]['ansible_%s' | format(item)]['type'] == 'bonding'
+# - name: "Enumerate bond {{ item }}"
+#   ansible.builtin.include_tasks: virtual/adapter.yml
+#   loop: "{{ hostsync_interfaces }}"
+#   when:
+#     - hostvars[hostsync_hostname]['ansible_%s' | format(item)]['type'] == 'bonding'
+
+# - name: "Hostsync.Virtual - Enumerate adapters"
+#   ansible.builtin.include_tasks: virtual/adapter.yml
+#   loop: "{{ hostsync_interfaces | default([], true) }}"
+#   loop_control:
+#     loop_var: iface
+#     label: "{{ iface }}"
+
+- name: "Hostsync.Virtual - Enumerate interfaces"
+  ansible.builtin.include_tasks: virtual/interface.yml

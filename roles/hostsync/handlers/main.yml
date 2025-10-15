@@ -1,2 +1,6 @@
 ---
 # handlers file for hostsync
+- name: Refresh facts
+  become: false
+  ansible.builtin.setup:
+    filter: ansible_local

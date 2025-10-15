@@ -131,6 +131,28 @@
 
 # - - - - - -
 
+- name: Create MAC Address for device bonds
+  when:
+    - hostsync_netbox_version is version(4.2, '>=')
+  delegate_to: localhost
+  loop: "{{ _device_bonds }}"
+  loop_control:
+    label: "{{ diface_bond }}"
+    loop_var: diface_bond
+  netbox.netbox.netbox_mac_address:
+    netbox_url: "{{ hostsync_netbox_api }}"
+    netbox_token: "{{ hostsync_netbox_api_key }}"
+    validate_certs: "{{ hostsync_netbox_validcert }}"
+    data:
+      mac_address: >-
+        {{
+          diface_facts[diface_bond].perm_macaddress
+            | default(diface_facts[diface_bond].macaddress)
+            | default(omit)
+        }}
+      tags: "{{ hostsync_add_tags }}"
+    state: present
+
 - name: Create bond masters type
   delegate_to: localhost
   loop: "{{ _device_bonds }}"
@@ -146,10 +168,37 @@
       name: "{{ diface_bond }}"
       type: lag
       enabled: "{{ diface_facts[diface_bond].active | default(true) }}"
-      mac_address: "{{ diface_facts[diface_bond].macaddress | default(omit) }}"
+      mac_address: >-
+        {{
+          diface_facts[diface_bond].perm_macaddress
+            | default(diface_facts[diface_bond].macaddress)
+            | default(omit)
+        }}
       mtu: "{{ diface_facts[diface_bond].mtu | default(omit) }}"
+      tags: "{{ hostsync_add_tags }}"
     state: present
 
+- name: Create MAC Address for physical NICs
+  when:
+    - hostsync_netbox_version is version(4.2, '>=')
+  delegate_to: localhost
+  loop: "{{ _device_phys }}"
+  loop_control:
+    label: "{{ diface_phys }}"
+    loop_var: diface_phys
+  netbox.netbox.netbox_mac_address:
+    netbox_url: "{{ hostsync_netbox_api }}"
+    netbox_token: "{{ hostsync_netbox_api_key }}"
+    validate_certs: "{{ hostsync_netbox_validcert }}"
+    data:
+      mac_address: >-
+        {{
+          diface_facts[diface_phys].perm_macaddress
+            | default(diface_facts[diface_phys].macaddress)
+            | default(omit)
+        }}
+      tags: "{{ hostsync_add_tags }}"
+    state: present
 
 - name: Create physical NICs
   delegate_to: localhost
@@ -188,8 +237,8 @@
         }}
       mtu: "{{ diface_facts[diface_phys].mtu | default(omit) }}"
       lag: "{{ _lag_master }}"
+      tags: "{{ hostsync_add_tags }}"
     state: present
-
 
 - name: Create bridge interfaces
   delegate_to: localhost
@@ -207,4 +256,5 @@
       type: bridge
       enabled: "{{ diface_facts[diface_brdg].active | default(true) }}"
       mtu: "{{ diface_facts[diface_brdg].mtu | default(omit) }}"
+      tags: "{{ hostsync_add_tags }}"
     state: present

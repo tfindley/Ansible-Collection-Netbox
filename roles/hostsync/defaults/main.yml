@@ -9,7 +9,7 @@ hostsync_hostname: "{{ inventory_hostname }}"
 # ------ Features
 hostsync_sfp_check: true  # Defaults to true
 # this requires privilage elevation on the target machine which you may not want.
-hostsync_uuid: true  # Defaults to true
+hostsync_uuid: false  # Defaults to true
 # this requires privilage elevation on the target machine which you may not want.
 
 # ------

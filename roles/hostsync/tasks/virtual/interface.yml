@@ -56,6 +56,28 @@
         | list
       }}
 
+- name: Create MAC Address for ether interfaces
+  when:
+    - hostsync_netbox_version is version(4.2, '>=')
+  delegate_to: localhost
+  loop: "{{ _ether_ifaces }}"
+  loop_control:
+    label: "{{ viface_ether }}"
+    loop_var: viface_ether
+  netbox.netbox.netbox_mac_address:
+    netbox_url: "{{ hostsync_netbox_api }}"
+    netbox_token: "{{ hostsync_netbox_api_key }}"
+    validate_certs: "{{ hostsync_netbox_validcert }}"
+    data:
+      mac_address: >-
+        {{
+          viface_facts[viface_ether].perm_macaddress
+            | default(viface_facts[viface_ether].macaddress)
+            | default(omit)
+        }}
+      tags: "{{ hostsync_add_tags }}"
+    state: present
+
 - name: Create ether interfaces in NetBox
   delegate_to: localhost
   loop: "{{ _ether_ifaces }}"
@@ -70,8 +92,14 @@
       virtual_machine: "{{ hostsync_hostname }}"
       name: "{{ viface_ether }}"
       enabled: "{{ viface_facts[viface_ether].active | default(true) }}"
-      mac_address: "{{ viface_facts[viface_ether].macaddress | default(omit) }}"
+      mac_address: >-
+        {{
+          viface_facts[viface_ether].perm_macaddress
+            | default(viface_facts[viface_ether].macaddress)
+            | default(omit)
+        }}
       mtu: "{{ viface_facts[viface_ether].mtu | default(omit) }}"
+      tags: "{{ hostsync_add_tags }}"
     state: present
 
 - name: Create bridge interfaces
@@ -93,4 +121,5 @@
       name: "{{ viface_bridge }}"
       enabled: "{{ viface_facts[viface_bridge].active | default(true) }}"
       mtu: "{{ viface_facts[item].mtu | default(omit) }}"
+      tags: "{{ hostsync_add_tags }}"
     state: present

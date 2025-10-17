@@ -1,10 +1,4 @@
-# - name: Establish connections to Netbox
-#   ansible.builtin.import_playbook: vibdc.deployment.netbox_connect
-#   vars:
-#     netbox_enabled: true
-#   when:
-#     - netbox_enabled | bool
-
+---
 - name: Perform Host Sync
   hosts:
     - all
@@ -14,4 +8,15 @@
     - tfindley.netbox.hostsync
 
   vars:
-    # netbox_tags: []
+    hostsync_netbox_api: "{{ lookup('env', 'NETBOX_API') }}"
+    hostsync_netbox_api_key: "{{ lookup('env', 'NETBOX_API_KEY') }}"
+    hostsync_netbox_validcert: "{{ lookup('env', 'NETBOX_VALID_HTTPS') | bool | default(true) }}"
+    hostsync_hostname: "{{ inventory_hostname }}"
+
+
+    hostsync_netbox_version: 4.3
+    # hostsync_interface_skip_regex: '^(lo|docker0|veth.*|br-[0-9a-f]{12}|docker0)$'
+    hostsync_sfp_check: true  # Defaults to true
+    # this requires privilage elevation on the target machine which you may not want.
+    hostsync_uuid: true  # Defaults to true
+    # this requires privilage elevation on the target machine which you may not want.

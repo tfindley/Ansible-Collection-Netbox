@@ -98,6 +98,13 @@
             | default(viface_facts[viface_ether].macaddress)
             | default(omit)
         }}
+      primary_mac_address: >-
+        {{
+          omit if hostsync_netbox_version is version(4.2, '<') else
+          viface_facts[viface_ether].perm_macaddress
+            | default(viface_facts[viface_ether].macaddress)
+            | default(omit)
+        }}
       mtu: "{{ viface_facts[viface_ether].mtu | default(omit) }}"
       tags: "{{ hostsync_add_tags }}"
     state: present

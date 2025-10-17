@@ -6,7 +6,7 @@
   become: false
   ansible.builtin.assert:
     that:
-      - hostsync_uuid is defined and hostsync_uuid | type_debug == "bool"
+      - hostsync_options['uuid'] is defined and hostsync_options['uuid'] | type_debug == "bool"
 
 - name: "Hostsync.Preflight - Check required Netbox information has been set"
   delegate_to: localhost

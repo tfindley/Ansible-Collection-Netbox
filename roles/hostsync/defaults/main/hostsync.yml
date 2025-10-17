@@ -1,0 +1,31 @@
+---
+hostsync_hostname: "{{ inventory_hostname }}"
+
+# ------ Features
+# this requires privilage elevation on the target machine which you may not want.
+hostsync_options:
+  uuid: true
+# this requires privilage elevation on the target machine which you may not want.
+
+hostsync_interface_skip_regex: >-
+  ^(lo
+  |docker0
+  |veth.*
+  |br-[0-9a-f]{12}
+  |tap.*
+  |tun.*
+  |virbr.*
+  |vnet.*
+  |fwln.*
+  |fwpr.*
+  |fwpx.*
+  |wlan.*
+  |wlp.*
+  |wlx.*
+  )$
+hostsync_sfp_naming_regex: '^(en[ops][0-9].*|eth[0-9].*)$'
+hostsync_netbox_version: "{{ netbox_version | default(4) }}"
+hostsync_add_tags:
+  - 'ansible_inventoried'
+  # - "{{ hostsync_os_tag }}"
+hostsync_primary_ipv4: "{{ ansible_default_ipv4.address }}/{{ _hostsync_primary_ipv4_cidr_logic | ansible.utils.ipaddr('prefix') }}"

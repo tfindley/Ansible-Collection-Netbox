@@ -4,7 +4,8 @@
 # Get serial number
 - name: "Hostsync.Device.Write - Compute serial number"
   when:
-    - hostsync_device_serialnumber | default(true) | bool
+    - hostsync_device_features['serial'] | default(true) | bool
+    - hostsync_device_override['serial'] is not defined or hostsync_device_override['serial'] | length == 0
   block:
 
     - name: "Hostsync.Device.Write - Get serial number"  # noqa: no-changed-when command-instead-of-shell
@@ -25,9 +26,10 @@
 
 # ------
 
-- name: "Hostsync.Device.Write - Compute serial number"
+- name: "Hostsync.Device.Write - Device Type"
   when:
-    - hostsync_device_devicetype | default(true) | bool
+    - hostsync_device_features['type'] | default(true) | bool
+    - hostsync_device_override['type'] is not defined or hostsync_device_override['type'] | length == 0
   block:
 
     - name: "Hostsync.Device.Write - Get Product name"  # noqa: no-changed-when command-instead-of-shell
@@ -51,7 +53,7 @@
         msg: |
           "device_manufacturer: {{ hostsync_mb_lookup.manufacturer | default('unset') }}"
 
-    - name: "Hostsync.Device.Write - Debug model varialbe"
+    - name: "Hostsync.Device.Write - Debug model variable"
       ansible.builtin.debug:
         msg: |
           "device_model: {{ hostsync_model_output.stdout | default('unset') | lower | replace(' ', '_') }}"
@@ -61,6 +63,21 @@
         msg: |
           "device_type: {{ hostsync_mb_lookup.manufacturer | default('unset') }}_{{ hostsync_model_output.stdout | default('unset') | lower | replace(' ', '_') }}"
 
+- name: Debug Type vars 1
+  ansible.builtin.debug:
+    var: hostsync_device_logic['type']
+
+- name: Debug Type vars 1
+  ansible.builtin.debug:
+    var: hostsync_device_logic['type_2']
+
+- name: Debug Platform vars 1
+  ansible.builtin.debug:
+    var: hostsync_device_logic['platform']
+
+- name: Debug Platform vars 1
+  ansible.builtin.debug:
+    var: hostsync_device_logic['platform_2']
 
 # ------
 
@@ -138,7 +155,6 @@
 
 - name: "Hostsync.Device.Write - Debug data"
   delegate_to: localhost
-  connection: local
   become: false
   when:
     - ansible_check_mode | bool
@@ -147,10 +163,10 @@
       - Data to be written
       - "------------------"
       - "name: {{ hostsync_hostname }}"
-      - "platform: {{ hostsync_os_selection_slug }}"
-      - "custom_fields: {{ hostsync_device_custom_fields_mapping }}"
-      - "device_type: {{ hostsync_mb_lookup.manufacturer }}_{{ hostsync_model_output.stdout | default('unset') | lower | replace(' ', '_') }}"
-      - "serial: {{ hostsync_serial_output.stdout | default(omit) }}"
+      - "platform: {{ hostsync_device_override['platform'] | default(hostsync_os_selection_slug) | default('unset') }}"
+      - "device_type: {{ hostsync_device_override['type'] | default(hostsync_device_logic['type']) | default('unset') }}"
+      - "serial: {{ hostsync_device_override['serial'] | default(hostsync_serial_output.stdout) | default('unset') }}"
+      - "custom_fields: {{ hostsync_device_custom_fields }}"
       - "tags: {{ (netbox_ci_info.device.tags | default([])) + ((hostsync_add_tags) | default([])) }}"
       - ''
       - "Original Data"
@@ -159,7 +175,6 @@
 
 - name: "Hostsync.Device.Write - Write CI information"
   delegate_to: localhost
-  connection: local
   become: false
   when:
     - not ansible_check_mode | bool
@@ -170,10 +185,18 @@
     data:
       name: "{{ hostsync_hostname }}"
       # device_type: "{{ hostsync_model_output.stdout | lower | replace(' ', '-') }}"
-      platform: "{{ hostsync_os_selection_slug }}"
-      custom_fields: "{{ hostsync_device_custom_fields_mapping }}"
-      device_type: "{{ hostsync_mb_lookup.manufacturer }}_{{ hostsync_model_output.stdout | lower | replace(' ', '_') }}"
+      platform: "{{ hostsync_device_override['platform']
+          | default(hostsync_device_logic['platform'])
+          | default(omit) }}"
+      device_type: "{{ hostsync_device_override['type']
+        | default(hostsync_device_logic['type'])
+        | default(omit) }}"
       # primary_ip4: "{{ hostsync_primary_ipv4 }}"  # No sense writing this as we required it to access the host in Netbox
-      serial: "{{ hostsync_serial_output.stdout | default(omit) }}"
-      tags: "{{ (netbox_ci_info.device.tags | default([])) + ((hostsync_add_tags) | default([])) }}"
+      serial: "{{ hostsync_device_override['serial']
+        | default(hostsync_serial_output.stdout)
+        | default(omit) }}"
+      custom_fields: "{{ hostsync_device_custom_fields }}"
+      tags: "{{ (netbox_ci_info.device.tags
+        | default([])) + ((hostsync_add_tags)
+        | default([])) }}"
     state: present

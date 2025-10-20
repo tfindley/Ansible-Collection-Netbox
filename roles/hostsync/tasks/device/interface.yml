@@ -1,0 +1,250 @@
+---
+- name: Build interface facts map
+  delegate_to: localhost
+  loop: "{{ hostvars[hostsync_hostname].ansible_facts.interfaces | difference(['lo']) }}"
+  loop_control:
+    label: "{{ diface }}"
+    loop_var: diface
+  ansible.builtin.set_fact:
+    diface_facts: >-
+      {{
+        (diface_facts | default({}))
+        | combine({
+            diface: (
+              hostvars[hostsync_hostname]['ansible_' + (diface | replace('-', '_'))]
+              | default({}, true)
+            )
+          })
+      }}
+
+- name: Debug all difaces
+  delegate_to: localhost
+  when:
+    - ansible_check_mode
+  ansible.builtin.debug:
+    var: diface_facts
+
+# Classify
+- name: Derive ether and bridge iface lists from diface_facts
+  delegate_to: localhost
+  ansible.builtin.set_fact:
+    _device_bonds: >-
+      {{
+        diface_facts | dict2items
+        | selectattr('value.type','in',['bond','bonding','team'])
+        | rejectattr('key','match', hostsync_interface_skip_regex)
+        | map(attribute='key') | list
+      }}
+    _device_phys: >-
+      {{
+        diface_facts | dict2items
+        | selectattr('value.type','equalto','ether')
+        | rejectattr('key','match', hostsync_interface_skip_regex)
+        | map(attribute='key') | list
+      }}
+    _device_bridges: >-
+      {{
+        diface_facts | dict2items
+        | selectattr('value.type','equalto','bridge')
+        | rejectattr('key','match', hostsync_interface_skip_regex)
+        | map(attribute='key') | list
+      }}
+
+- name: Debug bonds
+  delegate_to: localhost
+  when:
+    - ansible_check_mode
+  ansible.builtin.debug:
+    var: _device_bonds
+
+- name: Debug Physical
+  delegate_to: localhost
+  when:
+    - ansible_check_mode
+  ansible.builtin.debug:
+    var: _device_phys
+
+- name: Debug Bridges
+  delegate_to: localhost
+  when:
+    - ansible_check_mode
+  ansible.builtin.debug:
+    var: _device_bridges
+
+- name: Ensure port-kind map exists (no phys NICs)
+  when:
+    - _device_phys | length == 0
+  ansible.builtin.set_fact:
+    _hostsync_port_kind: {}
+
+# - - - - - -
+
+- name: Get existing interfaces for device (NetBox)
+  delegate_to: localhost
+  vars:
+    _q: ('device=' ~ hostsync_hostname)
+  ansible.builtin.set_fact:
+    _nb_existing_ifaces: >-
+      {{
+        query('netbox.netbox.nb_lookup', 'interfaces',
+               api_endpoint=hostsync_netbox_api,
+               token=hostsync_netbox_api_key,
+               validate_certs=hostsync_netbox_validcert,
+               api_filter="device=" ~hostsync_hostname)
+      }}
+# {{
+#   lookup('netbox.netbox.nb_lookup',
+#          'interfaces',
+#          api_endpoint=hostsync_netbox_api,
+#          token=hostsync_netbox_api_key,s
+#          validate_certs=hostsync_netbox_validcert,
+#          query=_q)
+# }}
+
+- name: Build set of existing interface names
+  delegate_to: localhost
+  ansible.builtin.set_fact:
+    _nb_existing_iface_names: "{{ _nb_existing_ifaces | map(attribute='value.name') | list }}"
+
+# - - - - - -
+
+- name: Create MAC Address for device bonds
+  when:
+    - hostsync_netbox_version is version(4.2, '>=')
+  delegate_to: localhost
+  loop: "{{ _device_bonds }}"
+  loop_control:
+    label: "{{ diface_bond }}"
+    loop_var: diface_bond
+  netbox.netbox.netbox_mac_address:
+    netbox_url: "{{ hostsync_netbox_api }}"
+    netbox_token: "{{ hostsync_netbox_api_key }}"
+    validate_certs: "{{ hostsync_netbox_validcert }}"
+    data:
+      mac_address: >-
+        {{
+          diface_facts[diface_bond].perm_macaddress
+            | default(diface_facts[diface_bond].macaddress)
+            | default(omit)
+        }}
+      tags: "{{ hostsync_add_tags }}"
+    state: present
+
+- name: Create bond masters type
+  delegate_to: localhost
+  loop: "{{ _device_bonds }}"
+  loop_control:
+    label: "{{ diface_bond }}"
+    loop_var: diface_bond
+  netbox.netbox.netbox_device_interface:
+    netbox_url: "{{ hostsync_netbox_api }}"
+    netbox_token: "{{ hostsync_netbox_api_key }}"
+    validate_certs: "{{ hostsync_netbox_validcert }}"
+    data:
+      device: "{{ hostsync_hostname }}"
+      name: "{{ diface_bond }}"
+      type: lag
+      enabled: "{{ diface_facts[diface_bond].active | default(true) }}"
+      mac_address: >-
+        {{
+          diface_facts[diface_bond].perm_macaddress
+            | default(diface_facts[diface_bond].macaddress)
+            | default(omit)
+        }}
+      primary_mac_address: >-
+        {{
+          omit if hostsync_netbox_version is version(4.2, '<') else
+          diface_facts[diface_bond].perm_macaddress
+            | default(diface_facts[diface_bond].macaddress)
+            | default(omit)
+        }}
+      mtu: "{{ diface_facts[diface_bond].mtu | default(omit) }}"
+      tags: "{{ hostsync_add_tags }}"
+    state: present
+
+- name: Create MAC Address for physical NICs
+  when:
+    - hostsync_netbox_version is version(4.2, '>=')
+  delegate_to: localhost
+  loop: "{{ _device_phys }}"
+  loop_control:
+    label: "{{ diface_phys }}"
+    loop_var: diface_phys
+  netbox.netbox.netbox_mac_address:
+    netbox_url: "{{ hostsync_netbox_api }}"
+    netbox_token: "{{ hostsync_netbox_api_key }}"
+    validate_certs: "{{ hostsync_netbox_validcert }}"
+    data:
+      mac_address: >-
+        {{
+          diface_facts[diface_phys].perm_macaddress
+            | default(diface_facts[diface_phys].macaddress)
+            | default(omit)
+        }}
+      tags: "{{ hostsync_add_tags }}"
+    state: present
+
+- name: Create physical NICs
+  delegate_to: localhost
+  loop: "{{ _device_phys }}"
+  loop_control:
+    label: "{{ diface_phys }} :: {{ _hostsync_port_kind[diface_phys] | default('tp') }} :: {{ diface_facts[diface_phys].speed | default('unk') }}"
+    loop_var: diface_phys
+  vars:
+    _port_kind: "{{ _hostsync_port_kind[diface_phys] | default('tp') }}"
+    _speed_key: "{{ (diface_facts[diface_phys].speed | default(-1)) | int | string }}"
+    _lag_master: >-
+      {{
+        (_device_bonds | select('in',
+          (diface_facts | dict2items
+            | selectattr('value.slaves','defined')
+            | selectattr('value.slaves','contains', diface_phys)
+            | map(attribute='key') | list)
+        ) | list | first) | default(omit)
+      }}
+    _type_on_create: "{{ 'other' if (diface_phys not in _nb_existing_iface_names) else omit }}"
+  netbox.netbox.netbox_device_interface:
+    netbox_url: "{{ hostsync_netbox_api }}"
+    netbox_token: "{{ hostsync_netbox_api_key }}"
+    validate_certs: "{{ hostsync_netbox_validcert }}"
+    data:
+      device: "{{ hostsync_hostname }}"
+      name: "{{ diface_phys }}"
+      type: "{{ _type_on_create }}"
+      enabled: "{{ diface_facts[diface_phys].active | default(true) }}"
+      mac_address: >-
+        {{
+          diface_facts[diface_phys].perm_macaddress
+            | default(diface_facts[diface_phys].macaddress)
+            | default(omit)
+        }}
+      primary_mac_address: >-
+        {{
+          omit if hostsync_netbox_version is version(4.2, '<') else
+          diface_facts[diface_phys].perm_macaddress
+            | default(diface_facts[diface_phys].macaddress)
+            | default(omit)
+        }}
+      mtu: "{{ diface_facts[diface_phys].mtu | default(omit) }}"
+      lag: "{{ _lag_master }}"
+      tags: "{{ hostsync_add_tags }}"
+    state: present
+
+- name: Create bridge interfaces
+  delegate_to: localhost
+  loop: "{{ _device_bridges }}"
+  loop_control:
+    label: "{{ diface_brdg }}"
+    loop_var: diface_brdg
+  netbox.netbox.netbox_device_interface:
+    netbox_url: "{{ hostsync_netbox_api }}"
+    netbox_token: "{{ hostsync_netbox_api_key }}"
+    validate_certs: "{{ hostsync_netbox_validcert }}"
+    data:
+      device: "{{ hostsync_hostname }}"
+      name: "{{ diface_brdg }}"
+      type: bridge
+      enabled: "{{ diface_facts[diface_brdg].active | default(true) }}"
+      mtu: "{{ diface_facts[diface_brdg].mtu | default(omit) }}"
+      tags: "{{ hostsync_add_tags }}"
+    state: present

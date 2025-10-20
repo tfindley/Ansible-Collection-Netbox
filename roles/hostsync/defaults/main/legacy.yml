@@ -1,0 +1,20 @@
+---
+# defaults file for hostsync
+
+# ------
+
+# ------
+# OS Selection logic
+# This is here so it can be overwritten on a per-host basis if needed.
+
+# ------
+# Tagging for Devices/Virtual Machines
+# hostsync_os_tag: "os_{{ hostsync_os_selection_slug | default('unknown') }}"  # No need to do this twice so we use the OS selection slug var.
+
+# In order to add tags to every system that has been synced, adjust this line
+
+# hostsync_set_primaryip: false
+
+
+# hostsync_interface_skip_regex: '^(lo|docker0|veth.*)$'
+# hostsync_docker_bridge_regex: '^br-[0-9a-f]{12}$'

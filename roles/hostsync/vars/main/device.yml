@@ -1,0 +1,76 @@
+---
+hostsync_model_output: 'unset'
+hostsync_serial_output: 'unset'
+
+hostsync_device_logic:
+  # type: "{{ hostsync_mb_lookup.manufacturer | lower | replace(' ', '_') }}_{{ hostsync_model_output.stdout | lower | replace(' ', '_') }}"
+  type: >-
+    {{
+      (hostsync_mb_lookup.manufacturer ~ '_' ~ hostsync_model_output.stdout)
+      | lower
+      | regex_replace('[^a-z0-9]+','_')
+      | regex_replace('_+','_')
+      | regex_replace('^_|_$','')
+    }}
+  # platform: "{{ ansible_system | lower }}_{{ ansible_distribution | lower }}{% if ansible_distribution_major_version is defined %}_{{ ansible_distribution_major_version }}{% if ansible_distribution_minor_version is defined %}_{{ ansible_distribution_minor_version }}{% endif %}{% endif %}"  # noqa: yaml[line-length]
+  platform: >-
+    {{
+      [ ansible_system,
+        ansible_distribution,
+        (ansible_distribution_major_version | default('')),
+        (ansible_distribution_minor_version | default(''))
+      ]
+      | map('string')
+      | select('truthy')
+      | join('_')
+      | lower
+      | regex_replace('[^a-z0-9_]+','_')
+      | regex_replace('_+','_')
+      | regex_replace('^_|_$','')
+    }}
+
+# - - - - -
+
+_hostsync_mb_logic:
+  "dell inc.":
+    serialno: "dmidecode -s system-serial-number"
+    model: "dmidecode -s system-product-name"
+    manufacturer: dell
+  "hp":  # This needs checking
+    serialno: "dmidecode -s system-serial-number"
+    model: "dmidecode -s system-product-name"
+    manufacturer: hpe
+  "raspberry pi foundation":  # This needs checking
+    # serialno: "cat /proc/cpuinfo  | grep Serial | cut -d ':' -f2 | cut -d ' ' -f 2"
+    serialno: "awk -F: '/Serial/ {gsub(/^ +/,\"\",$2); print $2}' /proc/cpuinfo"
+    model: "awk -F: '/Model/ {gsub(/^ +/,\"\",$2); print $2}' /proc/cpuinfo"
+    manufacturer: "raspberrypi"
+  # Add more manufacturer mappings as needed
+  "default":
+    serialno: "dmidecode -s system-serial-number"
+    model: "dmidecode -s system-product-name"
+    manufacturer: "{{ ansible_board_vendor | lower | regex_replace('[^a-z0-9]+', '_') }}"
+# hostsync_mb_lookup: "{{ _hostsync_mb_logic[ansible_board_vendor | lower] | default(_hostsync_mb_logic['default']) }}"
+# hostsync_mb_lookup: >-
+#   {{
+#     _hostsync_mb_logic.get(
+#       ansible_board_vendor | lower,
+#       _hostsync_mb_logic['default']
+#     )
+#   }}
+
+_hostsync_vendor_key: >-
+  {{
+    ansible_board_vendor
+    | lower
+    | regex_replace('[^a-z0-9. ]','')
+    | trim
+  }}
+
+hostsync_mb_lookup: >-
+  {{
+    _hostsync_mb_logic.get(
+      _hostsync_vendor_key,
+      _hostsync_mb_logic['default']
+    )
+  }}

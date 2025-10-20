@@ -1,6 +1,14 @@
 ---
 
-- name: Check required information has been set
+- name: "Hostsync.Preflight - Validate role variables have been set correctly"
+  delegate_to: localhost
+  connection: local
+  become: false
+  ansible.builtin.assert:
+    that:
+      - hostsync_options['uuid'] is defined and hostsync_options['uuid'] | type_debug == "bool"
+
+- name: "Hostsync.Preflight - Check required Netbox information has been set"
   delegate_to: localhost
   connection: local
   become: false
@@ -9,7 +17,7 @@
       - hostsync_netbox_api is defined and hostsync_netbox_api| length > 0
       - hostsync_netbox_api_key is defined and hostsync_netbox_api_key | length > 0
 
-- name: Check that you can connect to NetBox
+- name: "Hostsync.Preflight - Check that you can connect to NetBox"
   delegate_to: localhost
   connection: local
   become: false
@@ -17,7 +25,7 @@
     url: "{{ hostsync_netbox_api }}"
     validate_certs: "{{ hostsync_netbox_validcert }}"
 
-- name: Test NetBox API Key
+- name: "Hostsync.Preflight - Test NetBox API Key"
   delegate_to: localhost
   connection: local
   become: false
@@ -29,7 +37,7 @@
     headers:
       Authorization: Token {{ hostsync_netbox_api_key }}
       Accept: application/json
-  register: api_check
+  register: _hostsync_api_check
   failed_when:
-    - "'Invalid token' in api_check.content"
-    - "'Failed to establish connection to Netbox API' in api_check.content"
+    - "'Invalid token' in _hostsync_api_check.content"
+    - "'Failed to establish connection to Netbox API' in _hostsync_api_check.content"

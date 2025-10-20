@@ -9,6 +9,13 @@
 
 This role will sync your CI (Configuration Instance - a device or VM) informatino and update that hosts record in Netbox
 
+## Limitations
+
+- primary_ipv4 or primary_ipv6 address - not supported
+  - likelyhood is that you've already got that set if you're using Netbox as your dynamic inventory source.
+- Device Interface types - not supported
+  - detection of this is 'really' complicated and prone to errors. I had a rudementry version working but I removed it because it was more trouble than it was worth.
+
 ## Execution order
 
 - Determine Host (Physical) or Guest (Virtual) machine

@@ -1,0 +1,132 @@
+---
+# - name: Interfaces to include (exclude lo)
+#   ansible.builtin.set_fact:
+#     _ifaces: "{{ hostvars[hostsync_hostname].ansible_facts.interfaces | difference(['lo']) }}"
+
+# Original names as keys
+- name: Build interface facts map
+  ansible.builtin.set_fact:
+    viface_facts: >-
+      {{
+        (viface_facts | default({}))
+        | combine({
+            viface: (
+              hostvars[hostsync_hostname]['ansible_' + (viface | replace('-', '_'))]
+              | default({}, true)
+            )
+          })
+      }}
+  loop: "{{ hostvars[hostsync_hostname].ansible_facts.interfaces | difference(['lo']) }}"
+  loop_control:
+    label: "{{ viface }}"
+    loop_var: viface
+
+- name: Debug all vifaces
+  when:
+    - ansible_check_mode | bool
+  ansible.builtin.debug:
+    var: viface_facts
+
+- name: Derive ether and bridge iface lists from viface_facts
+  ansible.builtin.set_fact:
+    _ether_ifaces: >-
+      {{
+        viface_facts | dict2items
+        | selectattr('value.type','equalto','ether')
+        | map(attribute='key')
+        | reject('match', hostsync_interface_skip_regex)
+        | list
+      }}
+    _bridge_ifaces: >-
+      {{
+        viface_facts | dict2items
+        | selectattr('value.type','equalto','bridge')
+        | map(attribute='key')
+        | reject('match', hostsync_interface_skip_regex)
+        | list
+      }}
+
+- name: Derive missing interfaces
+  ansible.builtin.set_fact:
+    _other_ifaces: >-
+      {{
+        viface_facts | dict2items
+        | difference(_ether_ifaces)
+        | difference(_bridge_ifaces)
+        | list
+      }}
+
+- name: Create MAC Address for ether interfaces
+  when:
+    - hostsync_netbox_version is version(4.2, '>=')
+  delegate_to: localhost
+  loop: "{{ _ether_ifaces }}"
+  loop_control:
+    label: "{{ viface_ether }}"
+    loop_var: viface_ether
+  netbox.netbox.netbox_mac_address:
+    netbox_url: "{{ hostsync_netbox_api }}"
+    netbox_token: "{{ hostsync_netbox_api_key }}"
+    validate_certs: "{{ hostsync_netbox_validcert }}"
+    data:
+      mac_address: >-
+        {{
+          viface_facts[viface_ether].perm_macaddress
+            | default(viface_facts[viface_ether].macaddress)
+            | default(omit)
+        }}
+      tags: "{{ hostsync_add_tags }}"
+    state: present
+
+- name: Create ether interfaces in NetBox
+  delegate_to: localhost
+  loop: "{{ _ether_ifaces }}"
+  loop_control:
+    label: "{{ viface_ether }}"
+    loop_var: viface_ether
+  netbox.netbox.netbox_vm_interface:
+    netbox_url: "{{ hostsync_netbox_api }}"
+    netbox_token: "{{ hostsync_netbox_api_key }}"
+    validate_certs: "{{ hostsync_netbox_validcert }}"
+    data:
+      virtual_machine: "{{ hostsync_hostname }}"
+      name: "{{ viface_ether }}"
+      enabled: "{{ viface_facts[viface_ether].active | default(true) }}"
+      mac_address: >-
+        {{
+          viface_facts[viface_ether].perm_macaddress
+            | default(viface_facts[viface_ether].macaddress)
+            | default(omit)
+        }}
+      primary_mac_address: >-
+        {{
+          omit if hostsync_netbox_version is version(4.2, '<') else
+          viface_facts[viface_ether].perm_macaddress
+            | default(viface_facts[viface_ether].macaddress)
+            | default(omit)
+        }}
+      mtu: "{{ viface_facts[viface_ether].mtu | default(omit) }}"
+      tags: "{{ hostsync_add_tags }}"
+    state: present
+
+- name: Create bridge interfaces
+  delegate_to: localhost
+  when:
+    - (_bridge_ifaces | length) > 0
+  loop: "{{ _bridge_ifaces }}"
+  loop_control:
+    label: "{{ viface_bridge }} -> {{ _parent | default('UNSET') }}"
+    loop_var: viface_bridge
+  vars:
+    _parent: "{{ (netbox_bridge_parent_map[viface_bridge] | default(_default_bridge_parent)) }}"
+  netbox.netbox.netbox_vm_interface:
+    netbox_url: "{{ hostsync_netbox_api }}"
+    netbox_token: "{{ hostsync_netbox_api_key }}"
+    validate_certs: "{{ hostsync_netbox_validcert }}"
+    data:
+      virtual_machine: "{{ hostsync_hostname }}"
+      name: "{{ viface_bridge }}"
+      enabled: "{{ viface_facts[viface_bridge].active | default(true) }}"
+      mtu: "{{ viface_facts[item].mtu | default(omit) }}"
+      tags: "{{ hostsync_add_tags }}"
+    state: present

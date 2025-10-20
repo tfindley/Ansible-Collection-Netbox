@@ -30,6 +30,7 @@ Temporary Items
 # ---> Ansible
 *.retry
 .ansible/*
+docs/isolated/*
 
 # ---> VisualStudioCode
 .vscode/*

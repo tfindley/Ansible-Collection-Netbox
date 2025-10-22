@@ -2,15 +2,17 @@
 
 - name: "Hostsync.Preflight - Validate role variables have been set correctly"
   delegate_to: localhost
-  connection: local
   become: false
   ansible.builtin.assert:
     that:
-      - hostsync_options['uuid'] is defined and hostsync_options['uuid'] | type_debug == "bool"
+      - hostsync_options_uuid is defined and hostsync_options_uuid | bool is boolean
+
+- name: "Hostsync.Preflight - Report options"
+  ansible.builtin.debug:
+    msg: "UUID Enabled: {{ hostsync_options_uuid }}"
 
 - name: "Hostsync.Preflight - Check required Netbox information has been set"
   delegate_to: localhost
-  connection: local
   become: false
   ansible.builtin.assert:
     that:
@@ -19,7 +21,6 @@
 
 - name: "Hostsync.Preflight - Check that you can connect to NetBox"
   delegate_to: localhost
-  connection: local
   become: false
   ansible.builtin.uri:
     url: "{{ hostsync_netbox_api }}"
@@ -27,7 +28,6 @@
 
 - name: "Hostsync.Preflight - Test NetBox API Key"
   delegate_to: localhost
-  connection: local
   become: false
   ansible.builtin.uri:
     url: "{{ hostsync_netbox_api }}/api/"

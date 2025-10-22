@@ -6,7 +6,7 @@
 
 - name: "Hostsync.Main - Gather all host ID information"
   when:
-    - hostsync_options['uuid'] | bool
+    - hostsync_options_uuid | bool
   ansible.builtin.include_tasks: hostfact.yml
 
 - name: "Hostsync.Main - Gather all network interfaces"

@@ -1,10 +1,14 @@
 ---
 hostsync_hostname: "{{ inventory_hostname }}"
 
+# OS Selection logic
+# This is here so it can be overwritten on a per-host basis if needed.
+hostsync_os_selection_slug: "{{ ansible_system | lower }}_{{ ansible_distribution | lower }}{% if ansible_distribution_major_version is defined %}_{{ ansible_distribution_major_version }}{% if ansible_distribution_minor_version is defined %}_{{ ansible_distribution_minor_version }}{% endif %}{% endif %}"  # noqa: yaml[line-length]
+
+
 # ------ Features
 # this requires privilage elevation on the target machine which you may not want.
-hostsync_options:
-  uuid: true
+hostsync_options_uuid: true
 # this requires privilage elevation on the target machine which you may not want.
 
 hostsync_interface_skip_regex: >-

@@ -5,11 +5,16 @@
   become: false
   ansible.builtin.assert:
     that:
-      - hostsync_options_uuid is defined and hostsync_options_uuid | bool is boolean
+      - hostsync_options['uuid'] is defined and hostsync_options['uuid'] | bool is boolean
 
 - name: "Hostsync.Preflight - Report options"
   ansible.builtin.debug:
-    msg: "UUID Enabled: {{ hostsync_options_uuid }}"
+    msg: |
+      "Hostsync Role options"
+      "---------------------"
+      " CI UUID Enabled: {{ hostsync_options['uuid'] }}"
+      "Device Serial No: {{ hostsync_device_features['serial'] }}"
+      "     Device Type: {{ hostsync_device_features['type'] }}"
 
 - name: "Hostsync.Preflight - Check required Netbox information has been set"
   delegate_to: localhost

@@ -12,3 +12,5 @@ releases:
     release_date: '2025-08-29'
   0.6.3:
     release_date: '2025-10-20'
+  0.6.5:
+    release_date: '2025-10-24'

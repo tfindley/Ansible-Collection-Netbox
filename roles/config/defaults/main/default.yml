@@ -2,7 +2,7 @@
 # defaults file for nbconfig
 
 config_netbox_api: "{{ lookup('env', 'NETBOX_API') }}"
-config_netbox_api_key: "{{ lookup('env', 'NETBOX_API_TOKEN') }}"
+config_netbox_api_key: "{{ lookup('env', 'NETBOX_API_KEY') }}"
 config_netbox_validcert: "{{ lookup('env', 'NETBOX_VALID_HTTPS') | bool | default(true) }}"
 
 # This is the tag that is added to all items configured by this role.

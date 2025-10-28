@@ -7,7 +7,7 @@
     that:
       - config_netbox_api is defined and config_netbox_api| length > 0
       - config_netbox_api_key is defined and config_netbox_api_key | length > 0
-      - config_tags_base is defined and config_tags_base | list
+      - config_tags_base is defined and config_tags_base | type_debug == "list"
       - config_netbox_version is defined and config_netbox_version is version(3, '>=')
 
 - name: Check that you can connect to NetBox

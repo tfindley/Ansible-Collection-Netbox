@@ -100,7 +100,6 @@
   ansible.builtin.assert:
     that:
       - "item.name is defined and item.name | length > 0"
-      - "item.vid | int"
       - "item.vid is not defined or (item.vid | type_debug) == 'int'"
       - "item.tags is not defined or (item.tags | type_debug) == 'list'"
       - "(item.status | default('active') | lower ) in config_val_status.ipam.vlans"
@@ -142,7 +141,7 @@
     - config_ipam_prefix is defined
   ansible.builtin.assert:
     that:
-      - "item.prefix | ansible.utils.ipaddr"
+      - "item.prefix is ansible.utils.ipv4 or item.prefix is ansible.utils.ipv6"
       - "item.family is not defined or (item.family | type_debug) == 'int'"
       - "item.vlan is not defined or (item.vlan | type_debug) == 'int'"
       - "(item.status | default('active') | lower ) in config_val_status.ipam.prefixes"

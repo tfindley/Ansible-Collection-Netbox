@@ -1,6 +1,0 @@
----
-# This varialbe takes the output from nvidia-smi and converts it to a shorthand
-hostsync_gpu_model_to_type:
-  "NVIDIA A100 80GB PCIe": "a100"
-  "NVIDIA H100 80GB HBM3": "h100"
-  "NVIDIA L40S": "l40s"

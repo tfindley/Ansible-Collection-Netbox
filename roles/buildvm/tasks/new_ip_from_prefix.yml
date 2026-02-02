@@ -1,0 +1,37 @@
+---
+- name: "BuildVM.New-IP-from-Prefix - Debug interface {{ iface.name }}"
+  ansible.builtin.debug:
+    var: ipa
+
+- name: "BuildVM.New-IP-from-Prefix - Debug assigned object VM name"
+  ansible.builtin.debug:
+    var: buildvm_new_vm.virtual_machine.name
+
+- name: Debug assigned object interface name
+  ansible.builtin.debug:
+    var: buildvm_interface.interface.name
+
+- name: "BuildVM.New-IP-from-Prefix - Allocate next available IP Address to interface {{ iface.name }}"
+  when:
+    - ipa.prefix is defined
+    - buildvm_interface.interface.count_ipaddresses == 0
+  register: buildvm_ipaddress_prefix
+  netbox.netbox.netbox_ip_address:
+    netbox_url: "{{ buildvm_netbox_api }}"
+    netbox_token: "{{ buildvm_netbox_api_key }}"
+    validate_certs: "{{ buildvm_netbox_validcert }}"
+    data:
+      # prefix: "{{ prefix_info['prefix']['prefix'] }}"
+      prefix: "{{ ipa.prefix }}"
+      tenant: "{{ ipa.tenant }}"
+      dns_name: "{{ ipa.dns_name | default(omit) }}"
+      role: "{{ ipa.role | default(omit) }}"
+      assigned_object:
+        virtual_machine: "{{ buildvm_new_vm.virtual_machine.name }}"
+        name: "{{ buildvm_interface.interface.name }}"
+      status: "reserved"
+    state: new
+
+- name: "BuildVM.New-IP-from-Prefix - Report on newly assigned IP address"
+  ansible.builtin.debug:
+    var: buildvm_ipaddress_prefix

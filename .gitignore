@@ -29,6 +29,7 @@ Temporary Items
 
 # ---> Ansible
 *.retry
+.ansible/
 .ansible/*
 docs/isolated/*
 

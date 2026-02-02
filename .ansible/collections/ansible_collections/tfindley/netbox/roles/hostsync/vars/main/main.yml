@@ -1,6 +1,0 @@
----
-# vars file for hostsync
-
-# hostsync_add_tags:
-#   - 'ansible_inventoried'
-#   - "{{ hostsync_platform_lookup }}"

@@ -1,0 +1,25 @@
+---
+# tasks file for buildvm
+
+- name: "BuildVM - Handoff to Preflight task"
+  ansible.builtin.include_tasks: preflight.yml
+
+- name: "BuildVM - Validate VM request against Netbox"
+  ansible.builtin.include_tasks: validate_vm.yml
+  when:
+    - buildvm_virtual_machines is defined
+  loop: "{{ buildvm_virtual_machines }}"
+  loop_control:
+    loop_var: vm
+    index_var: vmi
+    label: "{{ vm.name }}"
+
+- name: "BuildVM - Loop through VM task"
+  ansible.builtin.include_tasks: buildvm_new_vm.yml
+  when:
+    - buildvm_virtual_machines is defined
+  loop: "{{ buildvm_virtual_machines }}"
+  loop_control:
+    loop_var: vm
+    index_var: vmi
+    label: "{{ vm.name }}"

@@ -1,0 +1,6 @@
+---
+- name: Test buildvm role
+  hosts: localhost
+  remote_user: root
+  roles:
+    - buildvm

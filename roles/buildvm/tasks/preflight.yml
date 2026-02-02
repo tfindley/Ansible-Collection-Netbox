@@ -1,0 +1,33 @@
+---
+# tasks file for nbconfig
+
+- name: "BuildVM.Preflight - Check required information has been set"
+  become: false
+  ansible.builtin.assert:
+    that:
+      - buildvm_netbox_api is defined and buildvm_netbox_api| length > 0
+      - buildvm_netbox_api_key is defined and buildvm_netbox_api_key | length > 0
+      # - buildvm_tags_base is defined and buildvm_tags_base | list  # Behaviour changed in Ansible Core 2.19
+      - buildvm_tags_base is defined and buildvm_tags_base | type_debug == 'list'
+      - buildvm_netbox_version is defined and buildvm_netbox_version is version(3, '>=')
+
+- name: "BuildVM.Preflight - Check that you can connect to NetBox"
+  become: false
+  ansible.builtin.uri:
+    url: "{{ buildvm_netbox_api }}"
+    validate_certs: "{{ buildvm_netbox_validcert }}"
+
+- name: "BuildVM.Preflight - Test NetBox API Key"
+  become: false
+  ansible.builtin.uri:
+    url: "{{ buildvm_netbox_api }}/api/"
+    validate_certs: "{{ buildvm_netbox_validcert }}"
+    method: GET
+    return_content: true
+    headers:
+      Authorization: Token {{ buildvm_netbox_api_key }}
+      Accept: application/json
+  register: _buildvm_api_check
+  failed_when:
+    - "'Invalid token' in _buildvm_api_check.content"
+    - "'Failed to establish connection to Netbox API' in _buildvm_api_check.content"

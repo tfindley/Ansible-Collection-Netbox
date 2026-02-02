@@ -1,0 +1,60 @@
+---
+- name: "BuildVM.Validate-VM-Interface - Set API Query facts"
+  ansible.builtin.set_fact:
+    # buildvm_vrf_filter: >-
+    #   {{
+    #     [
+    #       ('name=' ~ (iface.vrf | urlencode)) if (iface.vrf | d() | string | length) else none        ]
+    #     | select
+    #     | join(' ')
+    #   }}
+    buildvm_vrf_filter: >-
+      {{
+        [
+          ('name="' ~ (iface.vrf | string) ~ '"')
+          if (iface.vrf | d('') | string | length) else none
+        ]
+        | select
+        | join(' ')
+      }}
+
+- name: "BuildVM.Validate-VM-Interface - Debug netbox query 1"
+  ansible.builtin.debug:
+    var: buildvm_vrf_filter
+
+- name: "BuildVM.Validate-VM-Interface - Ensure filters are populated"
+  ansible.builtin.assert:
+    that:
+      - buildvm_vrf_filter | length > 0
+    fail_msg: >-
+      One or more NetBox filters are empty. Check your input vars.
+
+- name: "BuildVM.Validate-VM-Interface - Query netbox and set facts for VRF {{ iface.vrf }}"
+  ansible.builtin.set_fact:
+    buildvm_vrfs_raw: >-
+      {{ query('netbox.netbox.nb_lookup', 'vrfs',
+                api_endpoint=buildvm_netbox_api,
+                token=buildvm_netbox_api_key,
+                api_filter=buildvm_vrf_filter,
+                validate_certs=buildvm_netbox_validcert) }}
+
+- name: "BuildVM.Validate-VM-Interface - Debug netbox query 2"
+  ansible.builtin.debug:
+    var: buildvm_vrfs_raw
+
+- name: "BuildVM.Validate-VM-Interface - Validate cardinality (exactly one match each)"
+  ansible.builtin.assert:
+    that:
+      - buildvm_vrfs_raw | length == 1
+    fail_msg: >-
+      Expected exactly one match for each query.
+      vrfs={{ buildvm_vrfs_raw | length }} ({{ buildvm_vrf_filter }}),
+
+- name: "BuildVM.Validate-VM-Interface - Extract objects"
+  ansible.builtin.set_fact:
+    buildvm_retrieve_vrf: "{{ buildvm_vrfs_raw[0]['value'] }}"
+
+- name: "BuildVM.Validate-VM-Interface - Final sanity check (objects present)"
+  ansible.builtin.assert:
+    that:
+      - buildvm_retrieve_vrf is mapping

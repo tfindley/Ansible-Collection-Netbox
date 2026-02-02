@@ -1,0 +1,56 @@
+---
+- name: "BuildVM.New-VM - Create virtual machine within NetBox with only required information"
+  register: buildvm_new_vm
+  become: false
+  netbox.netbox.netbox_virtual_machine:
+    netbox_url: "{{ buildvm_netbox_api }}"
+    netbox_token: "{{ buildvm_netbox_api_key }}"
+    validate_certs: "{{ buildvm_netbox_validcert }}"
+    data:
+      name: "{{ vm.name }}"  # Required
+      cluster: "{{ vm.cluster | default(buildvm_default.cluster) }}"
+      status: "{{ vm.status | default(buildvm_default.status) }}"
+      description: "{{ vm.description | default(omit) }}"  # Optional
+      vcpus: "{{ (vm.custom_fields.cpu_cores_per_socket | int) * (vm.custom_fields.cpu_sockets | int) }}"
+      memory: "{{ vm.memory_mb }}"
+      platform: "{{ vm.platform | default(omit) }}"
+      tenant: "{{ vm.tenant | default(omit) }}"
+      virtual_machine_role: "{{ vm.role | default(buildvm_default.role) }}"
+      custom_fields: "{{ vm.custom_fields | default(omit) }}"  # Optional - must be pre-defined
+      tags: "{{ (vm.tags | default([])) + (buildvm_tags_base | default([])) }}"  # Optional
+    state: "{{ vm.state | default('present') }}"  # Optional
+
+- name: "BuildVM.New-VM - Report New VM"
+  ansible.builtin.debug:
+    var: buildvm_new_vm
+
+- name: "BuildVM.New-VM - Create virtual machine disk for virtual machine {{ buildvm_new_vm.virtual_machine.name }}"
+  become: false
+  when:
+    - vm.disks is defined
+  loop: "{{ vm.disks }}"
+  loop_control:
+    loop_var: disk
+    index_var: diski
+    label: "{{ disk.name }}"
+  netbox.netbox.netbox_virtual_disk:
+    netbox_url: "{{ buildvm_netbox_api }}"
+    netbox_token: "{{ buildvm_netbox_api_key }}"
+    validate_certs: "{{ buildvm_netbox_validcert }}"
+    data:
+      virtual_machine: "{{ buildvm_new_vm.virtual_machine.name }}"
+      name: "{{ disk.name }}"
+      size: "{{ disk.size_gb * 1000 }}"
+      custom_fields: "{{ disk.custom_fields | default(omit) }}"  # Optional - must be pre-defined
+      tags: "{{ (disk.tags | default([])) + (buildvm_tags_base | default([])) }}"  # Optional
+    state: "{{ disk.state | default('present') }}"
+
+- name: "BuildVM.New-VM - Loop through VM task"
+  ansible.builtin.include_tasks: buildvm_new_vm_interface.yml
+  when:
+    - vm.interfaces is defined
+  loop: "{{ vm.interfaces }}"
+  loop_control:
+    loop_var: iface
+    index_var: ifacei
+    label: "{{ iface.name }}"

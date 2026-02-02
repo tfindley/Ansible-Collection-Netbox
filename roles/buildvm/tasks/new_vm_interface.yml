@@ -1,0 +1,36 @@
+---
+- name: "BuildVM.New-VM-Interface - Create virtual machine interface for virtual machine {{ buildvm_new_vm.virtual_machine.name }}"
+  become: false
+  register: buildvm_interface
+  netbox.netbox.netbox_vm_interface:
+    netbox_url: "{{ buildvm_netbox_api }}"
+    netbox_token: "{{ buildvm_netbox_api_key }}"
+    validate_certs: "{{ buildvm_netbox_validcert }}"
+    data:
+      virtual_machine: "{{ buildvm_new_vm.virtual_machine.name }}"
+      name: "{{ iface.name }}"
+      enabled: "{{ iface.enabled | default(false) }}"
+      vrf: "{{ iface.vrf | default(omit) }}"
+      mtu: "{{ iface.mtu | default(omit) }}"
+      mode: "{{ iface.mode | default(omit) }}"
+      untagged_vlan: "{{ iface.untagged_vlan | default(omit) }}"
+      tagged_vlans: "{{ iface.tagged_vlan | default(omit) }}"
+      parent_vm_interface: "{{ iface.parent_vm_interface | default(omit) }}"
+      vm_bridge: "{{ iface.vm_bridge | default(omit) }}"
+      custom_fields: "{{ iface.custom_fields | default(omit) }}"  # Optional - must be pre-defined
+      tags: "{{ (iface.tags | default([])) + (buildvm_tags_base | default([])) }}"  # Optional
+    state: "{{ iface.state | default('present') }}"  # Optional
+
+
+- name: "BuildVM.New-VM-Interface - Report on newly created interface"
+  ansible.builtin.debug:
+    var: buildvm_interface
+
+- name: "NBConfig.Main - Loop through Assign IP task"
+  ansible.builtin.include_tasks: new_ip_from_prefix.yml
+  when:
+    - iface.ip_address is defined
+  loop: "{{ iface.ip_address }}"
+  loop_control:
+    loop_var: ipa
+    index_var: ipai

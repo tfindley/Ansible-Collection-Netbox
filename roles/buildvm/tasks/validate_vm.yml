@@ -1,0 +1,86 @@
+- name: "BuildVM.Validate-VM - Set API Query facts"
+  ansible.builtin.set_fact:
+    buildvm_tenant_filter: >-
+      {{
+        [
+          ('slug=' ~ (vm.tenant | urlencode)) if (vm.tenant | d() | string | length) else none
+        ]
+        | select
+        | join(' ')
+      }}
+    buildvm_cluster_filter: >-
+      {{
+        [
+          ('name=' ~ (vm.cluster | urlencode)) if (vm.cluster | d() | string | length) else none,
+          ('type=' ~ (buildvm_cluster_type | urlencode)) if (buildvm_cluster_type | d() | string | length) else none,
+          ('tenant_slug=' ~ (vm.tenant | urlencode)) if (vm.tenant | d() | string | length) else none
+        ]
+        | select
+        | join(' ')
+      }}
+
+- name: "BuildVM.Validate-VM - Ensure filters are populated"
+  ansible.builtin.assert:
+    that:
+      - buildvm_tenant_filter | length > 0
+      - buildvm_cluster_filter | length > 0
+    fail_msg: >-
+      One or more NetBox filters are empty. Check your input vars.
+
+- name: "BuildVM.Validate-VM - Query netbox and set facts"
+  ansible.builtin.set_fact:
+    buildvm_tenants_raw: >-
+      {{ query('netbox.netbox.nb_lookup', 'tenants',
+                api_endpoint=buildvm_netbox_api,
+                token=buildvm_netbox_api_key,
+                api_filter=buildvm_tenant_filter,
+                validate_certs=buildvm_netbox_validcert) }}
+    buildvm_clusters_raw: >-
+      {{ query('netbox.netbox.nb_lookup', 'clusters',
+                api_endpoint=buildvm_netbox_api,
+                token=buildvm_netbox_api_key,
+                api_filter=buildvm_cluster_filter,
+                validate_certs=buildvm_netbox_validcert) }}
+
+- name: "BuildVM.Validate-VM - Validate cardinality (exactly one match each)"
+  ansible.builtin.assert:
+    that:
+      - buildvm_tenants_raw | length == 1
+      - buildvm_clusters_raw | length == 1
+    fail_msg: >-
+      Expected exactly one match for each query.
+      tenants={{ buildvm_tenants_raw | length }} ({{ buildvm_tenant_filter }}),
+      clusters={{ buildvm_clusters_raw | length }} ({{ buildvm_cluster_filter }}),
+
+- name: "BuildVM.Validate-VM - Extract objects"
+  ansible.builtin.set_fact:
+    buildvm_retrieve_tenant: "{{ buildvm_tenants_raw[0]['value'] }}"
+    buildvm_retrieve_cluster: "{{ buildvm_clusters_raw[0]['value'] }}"
+
+- name: "BuildVM.Validate-VM - Display tenant/cluster information"
+  ansible.builtin.debug:
+    msg: |
+      Tenant:
+        - ID={{ buildvm_retrieve_tenant['id'] }}
+        - Name={{ buildvm_retrieve_tenant['name'] }}
+      Cluster:
+        - ID={{ buildvm_retrieve_cluster['id'] }}
+        - Name={{ buildvm_retrieve_cluster['name'] }}
+
+- name: "BuildVM.Validate-VM - Final sanity check (objects present)"
+  ansible.builtin.assert:
+    that:
+      - buildvm_retrieve_tenant is mapping
+      - buildvm_retrieve_cluster is mapping
+
+# -----
+
+- name: "BuildVM.Validate-VM - Loop through Validate VM Interface task"
+  ansible.builtin.include_tasks: validate_vm_interface.yml
+  when:
+    - vm.interfaces is defined
+  loop: "{{ vm.interfaces }}"
+  loop_control:
+    loop_var: iface
+    index_var: ifacei
+    label: "{{ iface.name }}"

@@ -1,9 +1,0 @@
----
-config_dcim_device_type:
-  - manufacturer: dunder-mifflin
-    model: "DM-BFG9000"
-    part_number: "dm_pn_bfg_9000"
-    slug: dm_bfg_9000
-    is_full_depth: true
-    u_height: '2'
-    airflow: "front-to-rear"

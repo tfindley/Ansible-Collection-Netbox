@@ -1,6 +1,0 @@
----
-config_dcim_rack_roles:
-  - name: Communications Cabinet
-    color: "c0c0c0"
-    slug: comms
-    description: "Dedicated Communications rack for switches and patch panels"

@@ -1,6 +1,0 @@
----
-- name: Test inventory role
-  hosts: localhost
-  remote_user: root
-  roles:
-    - tfindley.netbox.hostsync

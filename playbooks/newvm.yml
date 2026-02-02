@@ -3,14 +3,13 @@
   connection: local
 
 # TODO:
-# Change terraform-managed tag to terraform_managed
-# FIx tagging for IP addresses - terraform-managed cannot be used for IPs
+# FIx tagging for IP addresses - terraform_managed cannot be used for IPs
 
   vars:
     config_netbox_api: "{{ lookup('env', 'NETBOX_API') }}"
     config_netbox_api_key: "{{ lookup('env', 'NETBOX_API_TOKEN') }}"
     config_netbox_validcert: "{{ lookup('env', 'NETBOX_VALID_HTTPS') | bool | default(true) }}"
-    config_tags_base: "{{ netbox_tags_base | default(['ansible_managed', 'terraform-managed']) | list }}"
+    config_tags_base: "{{ netbox_tags_base | default(['ansible_managed', 'terraform_managed']) | list }}"
     config_netbox_version: "{{ netbox_version | default(4) }}"
 
     newvm_name: "TestVMNew"

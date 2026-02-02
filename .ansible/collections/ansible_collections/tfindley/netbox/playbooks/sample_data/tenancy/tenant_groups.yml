@@ -1,5 +1,0 @@
----
-config_tenancy_groups:
-  - name: Customers
-    slug: customers
-    description: "Sample tenant Group"

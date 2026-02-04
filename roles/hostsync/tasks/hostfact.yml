@@ -1,5 +1,6 @@
 ---
-- name: Ensure local Ansible Facts dir exists
+- name: "Hostsync.Hostfact - Ensure local Ansible Facts dir exists"
+  become: true
   ansible.builtin.file:
     path: /etc/ansible/facts.d
     state: directory
@@ -7,19 +8,19 @@
     group: root
     mode: "0755"
 
-- name: Read product UUID (may not exist on some platforms)
+- name: "Hostsync.Hostfact - Read product UUID (may not exist on some platforms)"
   register: _hostsync_product_uuid_raw
   become: true
   ansible.builtin.slurp:
     src: /sys/class/dmi/id/product_uuid
 
-- name: Read machine-id (may not exist in containers)
+- name: "Hostsync.Hostfact - Read machine-id (may not exist in containers)"
   register: _hostsync_machine_id_raw
   become: false
   ansible.builtin.slurp:
     src: /etc/machine-id
 
-- name: Build host_identity base fields
+- name: "Hostsync.Hostfact - Build host_identity base fields"
   ansible.builtin.set_fact:
     _hostsync_host_identity_inventory_id: "{{ inventory_hostname }}"
     _hostsync_host_identity_hostname: "{{ ansible_hostname }}"
@@ -27,7 +28,7 @@
     _hostsync_host_identity_product_uuid: "{{ (_hostsync_product_uuid_raw.content | default('')) | b64decode | trim }}"
     _hostsync_host_identity_machine_id: "{{ (_hostsync_machine_id_raw.content | default('')) | b64decode | trim }}"
 
-- name: Compute preferred_id (UUID -> machine-id -> FQDN)
+- name: "Hostsync.Hostfact - Compute preferred_id (UUID -> machine-id -> FQDN)"
   become: false
   ansible.builtin.set_fact:
     _hostsync_host_identity_preferred: >-
@@ -39,7 +40,7 @@
           _hostsync_host_identity_fqdn)
       }}
 
-- name: Write host_identity local fact (JSON)
+- name: "Hostsync.Hostfact - Write host_identity local fact (JSON)"
   notify:
     - "Refresh facts"
   become: true

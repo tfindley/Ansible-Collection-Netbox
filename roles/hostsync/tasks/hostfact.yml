@@ -23,8 +23,8 @@
 - name: "Hostsync.Hostfact - Build host_identity base fields"
   ansible.builtin.set_fact:
     _hostsync_host_identity_inventory_id: "{{ inventory_hostname }}"
-    _hostsync_host_identity_hostname: "{{ ansible_hostname }}"
-    _hostsync_host_identity_fqdn: "{{ ansible_fqdn | default(ansible_hostname) }}"
+    _hostsync_host_identity_hostname: "{{ ansible_facts['hostname'] }}"
+    _hostsync_host_identity_fqdn: "{{ ansible_facts['fqdn'] | default(ansible_hostname) }}"
     _hostsync_host_identity_product_uuid: "{{ (_hostsync_product_uuid_raw.content | default('')) | b64decode | trim }}"
     _hostsync_host_identity_machine_id: "{{ (_hostsync_machine_id_raw.content | default('')) | b64decode | trim }}"
 

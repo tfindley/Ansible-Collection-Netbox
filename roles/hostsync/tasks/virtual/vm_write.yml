@@ -15,7 +15,7 @@
       status: "{{ hostsync_vm_status | default(omit) }}"
       custom_fields: "{{ hostsync_vm_custom_fields_mapping }}"
       # primary_ip4: "{{ hostsync_primary_ipv4 }}"  # No sense writing this as we required it to access the host in Netbox
-      tags: "{{ (netbox_ci_info.virtual_machine.tags | default([])) + ((hostsync_add_tags) | default([])) }}"
+      tags: "{{ (_hostsync_netbox_ci_info.virtual_machine.tags | default([])) + ((hostsync_add_tags) | default([])) }}"
     state: present
 
 
@@ -32,8 +32,8 @@
       - "name: {{ hostsync_hostname }}"
       - "platform: {{ hostsync_os_selection_slug }}"
       - "custom_fields: {{ hostsync_vm_custom_fields_mapping }}"
-      - "tags: {{ (netbox_ci_info.virtual_machine.tags | default([])) + ((hostsync_add_tags) | default([])) }}"
+      - "tags: {{ (_hostsync_netbox_ci_info.virtual_machine.tags | default([])) + ((hostsync_add_tags) | default([])) }}"
       - ''
       - "Original Data"
       - "------------------"
-      - "{{ netbox_ci_info.virtual_machine }}"
+      - "{{ _hostsync_netbox_ci_info.virtual_machine }}"

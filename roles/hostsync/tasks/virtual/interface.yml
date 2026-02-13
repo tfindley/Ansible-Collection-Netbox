@@ -1,9 +1,4 @@
 ---
-# - name: Interfaces to include (exclude lo)
-#   ansible.builtin.set_fact:
-#     _ifaces: "{{ hostvars[hostsync_hostname].ansible_facts.interfaces | difference(['lo']) }}"
-
-# Original names as keys
 - name: Build interface facts map
   ansible.builtin.set_fact:
     _hostsync_viface_facts: >-
@@ -11,12 +6,12 @@
         (_hostsync_viface_facts | default({}))
         | combine({
             viface: (
-              hostvars[hostsync_hostname]['ansible_' + (viface | replace('-', '_'))]
+              hostvars[hostsync_hostname]['ansible_facts'][(viface | replace('-', '_'))]
               | default({}, true)
             )
           })
       }}
-  loop: "{{ hostvars[hostsync_hostname].ansible_facts.interfaces | difference(['lo']) }}"
+  loop: "{{ hostvars[hostsync_hostname]['ansible_facts']['interfaces'] | difference(['lo']) }}"
   loop_control:
     label: "{{ viface }}"
     loop_var: viface

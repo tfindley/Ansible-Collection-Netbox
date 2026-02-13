@@ -43,4 +43,4 @@ hostsync_interface_mgmt:
 
 hostsync_interface_exclude: "{{ hostsync_interface_system + hostsync_interface_mgmt }}"
 
-_hostsync_primary_ipv4_cidr_logic: "{{ ansible_default_ipv4.network }}/{{ ansible_default_ipv4.netmask }}"
+_hostsync_primary_ipv4_cidr_logic: "{{ ansible_facts['default_ipv4']['network'] }}/{{ ansible_facts['default_ipv4']['netmask'] }}"

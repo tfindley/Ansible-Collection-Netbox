@@ -3,7 +3,7 @@ hostsync_hostname: "{{ inventory_hostname }}"
 
 # OS Selection logic
 # This is here so it can be overwritten on a per-host basis if needed.
-hostsync_os_selection_slug: "{{ ansible_system | lower }}_{{ ansible_facts['distribution'] | lower }}{% if ansible_facts['distribution_major_version'] is defined %}_{{ ansible_facts['distribution_major_version'] }}{% if ansible_facts['distribution_minor_version'] is defined %}_{{ ansible_facts['distribution_minor_version'] }}{% endif %}{% endif %}"  # noqa: yaml[line-length]
+hostsync_os_selection_slug: "{{ ansible_facts['system'] | lower }}_{{ ansible_facts['distribution'] | lower }}{% if ansible_facts['distribution_major_version'] is defined %}_{{ ansible_facts['distribution_major_version'] }}{% if ansible_facts['distribution_minor_version'] is defined %}_{{ ansible_facts['distribution_minor_version'] }}{% endif %}{% endif %}"  # noqa: yaml[line-length]
 
 
 # ------ Features

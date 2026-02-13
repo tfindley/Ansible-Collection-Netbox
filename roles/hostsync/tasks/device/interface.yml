@@ -1,7 +1,25 @@
 ---
+# - name: Build interface facts map
+#   delegate_to: localhost
+#   loop: "{{ hostvars[hostsync_hostname].ansible_facts.interfaces | difference(['lo']) }}"
+#   loop_control:
+#     label: "{{ diface }}"
+#     loop_var: diface
+#   ansible.builtin.set_fact:
+#     _hostsync_diface_facts: >-
+#       {{
+#         (_hostsync_diface_facts | default({}))
+#         | combine({
+#             diface: (
+#               hostvars[hostsync_hostname]['ansible_' + (diface | replace('-', '_'))]
+#               | default({}, true)
+#             )
+#           })
+#       }}
+
 - name: Build interface facts map
   delegate_to: localhost
-  loop: "{{ hostvars[hostsync_hostname].ansible_facts.interfaces | difference(['lo']) }}"
+  loop: "{{ hostvars[hostsync_hostname]['ansible_facts']['interfaces'] | difference(['lo']) }}"
   loop_control:
     label: "{{ diface }}"
     loop_var: diface
@@ -11,7 +29,7 @@
         (_hostsync_diface_facts | default({}))
         | combine({
             diface: (
-              hostvars[hostsync_hostname]['ansible_' + (diface | replace('-', '_'))]
+              hostvars[hostsync_hostname]['ansible_facts'][(diface | replace('-', '_'))]
               | default({}, true)
             )
           })

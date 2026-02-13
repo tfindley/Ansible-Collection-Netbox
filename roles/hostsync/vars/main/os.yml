@@ -1,24 +1,16 @@
 ---
 _hostsync_os_logic:
   linux: >-
-    {{
-      ansible_system | lower
-    }}_
-    {{
-      ansible_distribution | lower
-    }}
-    {% if ansible_distribution_major_version is defined %}_
-      {{
-        ansible_distribution_major_version
-      }}
-      {% if ansible_distribution_minor_version is defined %}_
-        {{
-          ansible_distribution_minor_version
-        }}
+    {{ ansible_facts['system'] | lower }}_
+    {{ ansible_facts['distribution'] | lower }}
+    {% if ansible_facts['distribution_major_version'] is defined %}_
+      {{ ansible_facts['distribution_major_version'] }}
+      {% if ansible_facts['distribution_major_version'] is defined %}_
+        {{ ansible_facts['distribution_major_version'] }}
       {% endif %}
     {% endif %}
-  windows: "{{ ansible_system | lower }}"
-  default: "{{ ansible_system | lower }}_{{ ansible_distribution | lower }}"
+  windows: "{{ ansible_facts['system'] | lower }}"
+  default: "{{ ansible_facts['system'] | lower }}_{{ ansible_facts['distribution'] | lower }}"
 
 # _hostsync_os_logic:
 #   linux:

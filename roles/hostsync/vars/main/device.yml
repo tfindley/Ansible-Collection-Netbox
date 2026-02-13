@@ -33,10 +33,10 @@ hostsync_device_logic:
 
   platform: >-
     {{
-      [ ansible_system,
-        ansible_distribution,
-        (ansible_distribution_major_version | default('')),
-        (ansible_distribution_minor_version | default(''))
+      [ ansible_facts['system'],
+        ansible_facts['distribution'],
+        (ansible_facts['distribution_major_version'] | default('')),
+        (ansible_facts['distribution_minor_version'] | default(''))
       ]
       | map('string')
       | select('truthy')
@@ -67,7 +67,7 @@ _hostsync_mb_logic:
   "default":
     serialno: "dmidecode -s system-serial-number"
     model: "dmidecode -s system-product-name"
-    manufacturer: "{{ ansible_board_vendor | lower | regex_replace('[^a-z0-9]+', '_') }}"
+    manufacturer: "{{ ansible_facts['board_vendor'] | lower | regex_replace('[^a-z0-9]+', '_') }}"
 # hostsync_mb_lookup: "{{ _hostsync_mb_logic[ansible_board_vendor | lower] | default(_hostsync_mb_logic['default']) }}"
 # hostsync_mb_lookup: >-
 #   {{
@@ -79,7 +79,7 @@ _hostsync_mb_logic:
 
 _hostsync_vendor_key: >-
   {{
-    ansible_board_vendor
+    ansible_facts['board_vendor']
     | lower
     | regex_replace('[^a-z0-9. ]','')
     | trim

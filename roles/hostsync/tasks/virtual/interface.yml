@@ -1,5 +1,9 @@
 ---
 - name: Build interface facts map
+  loop: "{{ hostvars[hostsync_hostname]['ansible_facts']['interfaces'] | difference(['lo']) }}"
+  loop_control:
+    label: "{{ viface }}"
+    loop_var: viface
   ansible.builtin.set_fact:
     _hostsync_viface_facts: >-
       {{
@@ -11,10 +15,6 @@
             )
           })
       }}
-  loop: "{{ hostvars[hostsync_hostname]['ansible_facts']['interfaces'] | difference(['lo']) }}"
-  loop_control:
-    label: "{{ viface }}"
-    loop_var: viface
 
 - name: Debug all vifaces
   when:

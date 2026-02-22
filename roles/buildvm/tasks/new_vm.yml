@@ -46,7 +46,7 @@
     state: "{{ disk.state | default('present') }}"
 
 - name: "BuildVM.New-VM - Loop through VM task"
-  ansible.builtin.include_tasks: buildvm_new_vm_interface.yml
+  ansible.builtin.include_tasks: new_vm_interface.yml
   when:
     - vm.interfaces is defined
   loop: "{{ vm.interfaces }}"

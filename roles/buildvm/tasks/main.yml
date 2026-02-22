@@ -15,7 +15,7 @@
     label: "{{ vm.name }}"
 
 - name: "BuildVM - Loop through VM task"
-  ansible.builtin.include_tasks: buildvm_new_vm.yml
+  ansible.builtin.include_tasks: new_vm.yml
   when:
     - buildvm_virtual_machines is defined
   loop: "{{ buildvm_virtual_machines }}"

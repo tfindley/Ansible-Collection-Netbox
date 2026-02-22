@@ -8,20 +8,22 @@
       - hostsync_options['uuid'] is defined and hostsync_options['uuid'] | bool is boolean
 
 - name: "Hostsync.Preflight - Report options"
+  vars:
+    _hostsync_debugmsg: |
+      Hostsync Role options
+      ---------------------
+       CI UUID Enabled: {{ hostsync_options['uuid'] }}
+      Device Serial No: {{ hostsync_device_features['serial'] }}
+           Device Type: {{ hostsync_device_features['type'] }}
   ansible.builtin.debug:
-    msg: |
-      "Hostsync Role options"
-      "---------------------"
-      " CI UUID Enabled: {{ hostsync_options['uuid'] }}"
-      "Device Serial No: {{ hostsync_device_features['serial'] }}"
-      "     Device Type: {{ hostsync_device_features['type'] }}"
+    msg: "{{ _hostsync_debugmsg.split('\n') }}"
 
 - name: "Hostsync.Preflight - Check required Netbox information has been set"
   delegate_to: localhost
   become: false
   ansible.builtin.assert:
     that:
-      - hostsync_netbox_api is defined and hostsync_netbox_api| length > 0
+      - hostsync_netbox_api is defined and hostsync_netbox_api | length > 0
       - hostsync_netbox_api_key is defined and hostsync_netbox_api_key | length > 0
 
 - name: "Hostsync.Preflight - Check that you can connect to NetBox"

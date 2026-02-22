@@ -3,7 +3,7 @@ hostsync_hostname: "{{ inventory_hostname }}"
 
 # OS Selection logic
 # This is here so it can be overwritten on a per-host basis if needed.
-hostsync_os_selection_slug: "{{ ansible_system | lower }}_{{ ansible_distribution | lower }}{% if ansible_distribution_major_version is defined %}_{{ ansible_distribution_major_version }}{% if ansible_distribution_minor_version is defined %}_{{ ansible_distribution_minor_version }}{% endif %}{% endif %}"  # noqa: yaml[line-length]
+hostsync_os_selection_slug: "{{ ansible_facts['system'] | lower }}_{{ ansible_facts['distribution'] | lower }}{% if ansible_facts['distribution_major_version'] is defined %}_{{ ansible_facts['distribution_major_version'] }}{% if ansible_facts['distribution_minor_version'] is defined %}_{{ ansible_facts['distribution_minor_version'] }}{% endif %}{% endif %}"  # noqa: yaml[line-length]
 
 
 # ------ Features
@@ -33,4 +33,4 @@ hostsync_netbox_version: "{{ netbox_version | default(4) }}"
 hostsync_add_tags:
   - 'ansible_inventoried'
   # - "{{ hostsync_os_tag }}"
-hostsync_primary_ipv4: "{{ ansible_default_ipv4.address }}/{{ _hostsync_primary_ipv4_cidr_logic | ansible.utils.ipaddr('prefix') }}"
+hostsync_primary_ipv4: "{{ ansible_facts['default_ipv4']['address'] }}/{{ _hostsync_primary_ipv4_cidr_logic | ansible.utils.ipaddr('prefix') }}"

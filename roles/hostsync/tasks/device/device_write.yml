@@ -60,8 +60,14 @@
 
     - name: "Hostsync.Device.Write - Debug device_type variable"  # noqa: yaml[line-length]
       ansible.builtin.debug:
-        msg: |
-          "device_type: {{ hostsync_mb_lookup.manufacturer | default('unset') }}_{{ hostsync_model_output.stdout | default('unset') | lower | replace(' ', '_') }}"
+        msg: >-
+          device_type:
+            {{
+              hostsync_mb_lookup.manufacturer | default('unset')
+            }}_
+            {{
+              hostsync_model_output.stdout | default('unset') | lower | replace(' ', '_')
+            }}
 
 - name: Debug Type vars 1
   ansible.builtin.debug:
@@ -167,11 +173,11 @@
       - "device_type: {{ hostsync_device_override['type'] | default(hostsync_device_logic['type']) | default('unset') }}"
       - "serial: {{ hostsync_device_override['serial'] | default(hostsync_serial_output.stdout) | default('unset') }}"
       - "custom_fields: {{ hostsync_device_custom_fields }}"
-      - "tags: {{ (netbox_ci_info.device.tags | default([])) + ((hostsync_add_tags) | default([])) }}"
+      - "tags: {{ (_hostsync_netbox_ci_info.device.tags | default([])) + ((hostsync_add_tags) | default([])) }}"
       - ''
       - "Original Data"
       - "------------------"
-      - "{{ netbox_ci_info.device }}"
+      - "{{ _hostsync_netbox_ci_info.device }}"
 
 - name: "Hostsync.Device.Write - Write CI information"
   delegate_to: localhost
@@ -196,7 +202,7 @@
         | default(hostsync_serial_output.stdout)
         | default(omit) }}"
       custom_fields: "{{ hostsync_device_custom_fields }}"
-      tags: "{{ (netbox_ci_info.device.tags
+      tags: "{{ (_hostsync_netbox_ci_info.device.tags
         | default([])) + ((hostsync_add_tags)
         | default([])) }}"
     state: present

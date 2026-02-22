@@ -11,7 +11,7 @@
 
 - name: "Hostsync.Main - Gather all network interfaces"
   ansible.builtin.set_fact:
-    hostsync_interfaces: "{{ ansible_interfaces | difference(hostsync_interface_exclude) | list | sort }}"
+    hostsync_interfaces: "{{ ansible_facts['interfaces'] | difference(hostsync_interface_exclude) | list | sort }}"
 
 - name: "Hostsync.Main - Initialize network adapters dictionary"
   ansible.builtin.set_fact:
@@ -19,12 +19,12 @@
 
 - name: "Hostsync.Main - Trigger Physical Device hostsync"
   when:
-    - ansible_virtualization_role == "host"
+    - ansible_facts['virtualization_role'] == "host"
   ansible.builtin.include_tasks: device/main.yml
 
 - name: "Hostsync.Main - Trigger Virtual Machine hostsync"
   when:
-    - ansible_virtualization_role == "guest"
+    - ansible_facts['virtualization_role'] == "guest"
   ansible.builtin.include_tasks: virtual/main.yml
 
 # - name: Display network adapter dictionary
